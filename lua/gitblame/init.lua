@@ -57,10 +57,11 @@ local function get_blame_info()
             if line:match('^author ') then
                 local author = line:gsub('^author ', '')
                 info.author = author == current_author and 'You' or author
-            elseif line:match('^author-time ') then
-                local text = line:gsub('^author-time ', '')
-                -- TODO parse text to "Time ago" format string
-                info.time = text
+            elseif line:match('^author%-time ') then
+                local text = line:gsub('^author%-time ', '')
+
+                -- TODO format date
+                info.date = os.date('*t', text)
             elseif line:match('^summary ') then
                 local text = line:gsub('^summary ', '')
                 info.summary = text
