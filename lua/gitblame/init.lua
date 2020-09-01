@@ -1,4 +1,4 @@
-local current_author
+local NAMESPACE_ID = 23
 
 -- returns output of a command
 function os.capture(cmd)
@@ -10,16 +10,14 @@ function os.capture(cmd)
     return output
 end
 
-local function find_current_author()
-    if current_author == nil then
-        current_author = os.capture('git config --get user.name')
-    end
+local function clear_virtual_text()
+    vim.api.nvim_buf_clear_namespace(0, NAMESPACE_ID, 0, -1)
 end
 
-local function get_blame_info()
-    find_current_author()
+local function load_blames()
+    local blames = {}
+    print('called load_blames')
 
-    local blame_infos = {}
     local filepath = vim.api.nvim_buf_get_name(0)
     local blame_output = os.capture(
                              'git --no-pager blame -b -p --date relative - ' ..
@@ -42,7 +40,7 @@ local function get_blame_info()
             }
 
             if parts[1]:match('^0+$') == nil then
-                for _, found_info in ipairs(blame_infos) do
+                for _, found_info in ipairs(blames) do
                     if found_info.sha == parts[1] then
                         info.author = found_info.author
                         info.time = found_info.time
@@ -52,11 +50,11 @@ local function get_blame_info()
                 end
             end
 
-            table.insert(blame_infos, info)
+            table.insert(blames, info)
         elseif info then
             if line:match('^author ') then
                 local author = line:gsub('^author ', '')
-                info.author = author == current_author and 'You' or author
+                info.author = author == currentAuthor and 'You' or author
             elseif line:match('^author%-time ') then
                 local text = line:gsub('^author%-time ', '')
 
@@ -69,7 +67,53 @@ local function get_blame_info()
         end
     end
 
-    return blame_infos
+    blameInfos[filepath] = blames
 end
 
-return {get_blame_info = get_blame_info}
+local function show_blame_info()
+    clear_virtual_text()
+
+    local line = vim.api.nvim_win_get_cursor(0)[1]
+    local filepath = vim.api.nvim_buf_get_name(0)
+    if not blameInfos[filepath] then load_blames() end
+
+    local info, blame_text
+    for _, v in ipairs(blameInfos[filepath]) do
+        if line >= v.startline and line <= v.endline then
+            info = v
+            break
+        end
+    end
+    if info and info.author and info.author ~= 'Not Committed Yet' then
+        blame_text = info.author .. ' | ' .. info.summary
+    else
+        blame_text = 'Not Committed Yet'
+    end
+
+    vim.api.nvim_buf_set_virtual_text(0, NAMESPACE_ID, line - 1,
+                                      {{blame_text, 'gitblame'}}, {})
+end
+
+local function check_is_git_repo()
+    return #os.capture('git rev-parse --show-toplevel 2>/dev/null') > 0
+end
+
+local function find_current_author()
+    currentAuthor = os.capture('git config --get user.name')
+end
+
+local function init()
+    blameInfos = {}
+    if not check_is_git_repo() then return end
+
+    find_current_author()
+
+    load_blames()
+end
+
+return {
+    init = init,
+    show_blame_info = show_blame_info,
+    clear_virtual_text = clear_virtual_text,
+    load_blames = load_blames
+}
