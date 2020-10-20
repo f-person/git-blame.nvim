@@ -1,4 +1,4 @@
-local NAMESPACE_ID = 23
+local NAMESPACE_ID = 2
 
 -- returns output of a command
 function os.capture(cmd)
@@ -85,9 +85,9 @@ local function show_blame_info()
         end
     end
     if info and info.author and info.author ~= 'Not Committed Yet' then
-        blame_text = info.author .. ' | ' .. info.summary
+        blame_text = '  ' .. info.author .. ' • ' .. info.summary
     else
-        blame_text = 'Not Committed Yet'
+        blame_text = '  Not Committed Yet'
     end
 
     vim.api.nvim_buf_set_virtual_text(0, NAMESPACE_ID, line - 1,
