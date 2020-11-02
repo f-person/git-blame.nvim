@@ -1,9 +1,23 @@
+function dump(o)
+    if type(o) == 'table' then
+        local s = '{ '
+        for k, v in pairs(o) do
+            if type(k) ~= 'number' then k = '"' .. k .. '"' end
+            s = s .. '[' .. k .. '] = ' .. dump(v) .. ','
+        end
+        return s .. '} '
+    else
+        return tostring(o)
+    end
+end
+
 local NAMESPACE_ID = 2
 
 -- returns output of a command
 function os.capture(cmd)
     local handle = assert(io.popen(cmd, 'r'))
     local output = assert(handle:read('*a'))
+
     handle:close()
 
     output = string.gsub(string.gsub(output, '^%s+', ''), '%s+$', '')
@@ -85,7 +99,16 @@ local function show_blame_info()
         end
     end
     if info and info.author and info.author ~= 'Not Committed Yet' then
-        blame_text = '  ' .. info.author .. ' • ' .. info.summary
+        local formatted_date = ''
+        if info.date then
+            formatted_date = info.date.day .. '.' .. info.date.month .. '.' ..
+                                 info.date.year .. ', ' .. info.date.hour .. ':' ..
+                                 info.date.min
+        end
+
+        blame_text =
+            '  ' .. info.author .. ' • ' .. formatted_date .. ' • ' ..
+                info.summary
     else
         blame_text = '  Not Committed Yet'
     end
