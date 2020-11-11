@@ -49,8 +49,6 @@ local function load_blames()
                 info.author = author == currentAuthor and 'You' or author
             elseif line:match('^author%-time ') then
                 local text = line:gsub('^author%-time ', '')
-
-                -- TODO format date
                 info.date = os.date('*t', text)
             elseif line:match('^summary ') then
                 local text = line:gsub('^summary ', '')
@@ -64,6 +62,7 @@ end
 
 local function check_is_git_repo()
     local filepath = vim.api.nvim_buf_get_name(0)
+    if filepath == nill then return end
     vim.fn.system('git ls-files --error-unmatch ' .. filepath)
     return vim.v['shell_error'] == 0
 end
