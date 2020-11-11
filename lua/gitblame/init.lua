@@ -1,28 +1,4 @@
-function dump(o)
-    if type(o) == 'table' then
-        local s = '{ '
-        for k, v in pairs(o) do
-            if type(k) ~= 'number' then k = '"' .. k .. '"' end
-            s = s .. '[' .. k .. '] = ' .. dump(v) .. ','
-        end
-        return s .. '} '
-    else
-        return tostring(o)
-    end
-end
-
 local NAMESPACE_ID = 2
-
--- returns output of a command
-function os.capture(cmd)
-    local handle = assert(io.popen(cmd, 'r'))
-    local output = assert(handle:read('*a'))
-
-    handle:close()
-
-    output = string.gsub(string.gsub(output, '^%s+', ''), '%s+$', '')
-    return output
-end
 
 local function clear_virtual_text()
     vim.api.nvim_buf_clear_namespace(0, NAMESPACE_ID, 0, -1)
@@ -30,15 +6,17 @@ end
 
 local function load_blames()
     local blames = {}
-    print('called load_blames')
 
     local filepath = vim.api.nvim_buf_get_name(0)
-    local blame_output = os.capture(
-                             'git --no-pager blame -b -p --date relative - ' ..
-                                 filepath)
+    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    if #lines == 0 then return end
+
+    local blame_output = vim.fn.systemlist(
+                             'git --no-pager blame -b -p --date relative --contents - ' ..
+                                 filepath, table.concat(lines, '\n') .. '\n')
 
     local info
-    for line in blame_output:gmatch('([^\n]*)\n?') do
+    for _, line in ipairs(blame_output) do
         local message = line:match('^([A-Za-z0-9]+) ([0-9]+) ([0-9]+) ([0-9]+)')
         if message then
             local parts = {}
@@ -84,12 +62,21 @@ local function load_blames()
     blameInfos[filepath] = blames
 end
 
+local function check_is_git_repo()
+    local filepath = vim.api.nvim_buf_get_name(0)
+    vim.fn.system('git ls-files --error-unmatch ' .. filepath)
+    return vim.v['shell_error'] == 0
+end
+
 local function show_blame_info()
+    if not check_is_git_repo() then return end
+
     clear_virtual_text()
 
     local line = vim.api.nvim_win_get_cursor(0)[1]
     local filepath = vim.api.nvim_buf_get_name(0)
     if not blameInfos[filepath] then load_blames() end
+    if not blameInfos[filepath] then return end
 
     local info, blame_text
     for _, v in ipairs(blameInfos[filepath]) do
@@ -113,12 +100,8 @@ local function show_blame_info()
                                       {{blame_text, 'gitblame'}}, {})
 end
 
-local function check_is_git_repo()
-    return #os.capture('git rev-parse --show-toplevel 2>/dev/null') > 0
-end
-
 local function find_current_author()
-    currentAuthor = os.capture('git config --get user.name')
+    currentAuthor = vim.fn.system('git config --get user.name')
 end
 
 local function init()
@@ -128,6 +111,7 @@ local function init()
     find_current_author()
 
     load_blames()
+    show_blame_info()
 end
 
 return {
