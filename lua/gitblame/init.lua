@@ -57,28 +57,38 @@ local function load_blames()
         end
     end
 
-    blameInfos[filepath] = blames
+    if not filesData[filepath] then filesData[filepath] = {} end
+    filesData[filepath].blames = blames
 end
 
-local function check_is_git_repo()
-    local filepath = vim.api.nvim_buf_get_name(0)
-    if filepath == nill then return end
+local function check_is_in_git_repo(filepath)
+    if filepath == nil then return end
     vim.fn.system('git ls-files --error-unmatch ' .. filepath)
     return vim.v['shell_error'] == 0
 end
 
+local function check_file_in_git_repo()
+    local filepath = vim.api.nvim_buf_get_name(0)
+    if not filesData[filepath] then filesData[filepath] = {} end
+    filesData[filepath].is_in_git_repo = check_is_in_git_repo(filepath)
+end
+
 local function show_blame_info()
-    if not check_is_git_repo() then return end
+    local filepath = vim.api.nvim_buf_get_name(0)
+    if not filesData[filepath] or not filesData[filepath].is_in_git_repo then
+        return
+    end
+    if not filesData[filepath].blames then load_blames() end
 
     clear_virtual_text()
 
     local line = vim.api.nvim_win_get_cursor(0)[1]
-    local filepath = vim.api.nvim_buf_get_name(0)
-    if not blameInfos[filepath] then load_blames() end
-    if not blameInfos[filepath] then return end
+    if not filesData[filepath] or not filesData[filepath].blames then
+        load_blames()
+    end
 
     local info, blame_text
-    for _, v in ipairs(blameInfos[filepath]) do
+    for _, v in ipairs(filesData[filepath].blames) do
         if line >= v.startline and line <= v.endline then
             info = v
             break
@@ -104,8 +114,8 @@ local function find_current_author()
 end
 
 local function init()
-    blameInfos = {}
-    if not check_is_git_repo() then return end
+    filesData = {}
+    if not check_is_in_git_repo() then return end
 
     find_current_author()
 
@@ -117,5 +127,6 @@ return {
     init = init,
     show_blame_info = show_blame_info,
     clear_virtual_text = clear_virtual_text,
-    load_blames = load_blames
+    load_blames = load_blames,
+    check_file_in_git_repo = check_file_in_git_repo
 }
