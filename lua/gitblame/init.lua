@@ -57,7 +57,7 @@ local function load_blames()
                 for _, found_info in ipairs(blames) do
                     if found_info.sha == parts[1] then
                         info.author = found_info.author
-                        info.time = found_info.time
+                        info.date = found_info.date
                         info.summary = found_info.summary
                         break
                     end
@@ -99,13 +99,9 @@ local function show_blame_info()
         end
     end
     if info and info.author and info.author ~= 'Not Committed Yet' then
-        local formatted_date = ''
-        if info.date then
-            formatted_date = info.date.day .. '.' .. info.date.month .. '.' ..
-                                 info.date.year .. ', ' .. info.date.hour .. ':' ..
-                                 info.date.min
-        end
-
+        formatted_date = info.date.day .. '.' .. info.date.month .. '.' ..
+                             info.date.year .. ', ' .. info.date.hour .. ':' ..
+                             info.date.min
         blame_text =
             '  ' .. info.author .. ' • ' .. formatted_date .. ' • ' ..
                 info.summary
