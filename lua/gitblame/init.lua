@@ -109,6 +109,11 @@ local function show_blame_info()
                                       {{blame_text, 'gitblame'}}, {})
 end
 
+local function cleanup_file_data()
+    local filepath = vim.api.nvim_buf_get_name(0)
+    filesData[filepath] = nil
+end
+
 local function find_current_author()
     currentAuthor = vim.fn.system('git config --get user.name')
 end
@@ -128,5 +133,6 @@ return {
     show_blame_info = show_blame_info,
     clear_virtual_text = clear_virtual_text,
     load_blames = load_blames,
-    check_file_in_git_repo = check_file_in_git_repo
+    check_file_in_git_repo = check_file_in_git_repo,
+    cleanup_file_data = cleanup_file_data
 }
