@@ -1,5 +1,7 @@
 local NAMESPACE_ID = 2
 
+local last_position = {}
+
 local function clear_virtual_text()
     vim.api.nvim_buf_clear_namespace(0, NAMESPACE_ID, 0, -1)
 end
@@ -75,6 +77,15 @@ end
 
 local function show_blame_info()
     local filepath = vim.api.nvim_buf_get_name(0)
+    local line = vim.api.nvim_win_get_cursor(0)[1]
+
+    if last_position.filepath == filepath and last_position.line == line then
+        return
+    else
+        last_position.filepath = filepath
+        last_position.line = line
+    end
+
     if not filesData[filepath] or not filesData[filepath].is_in_git_repo then
         return
     end
@@ -82,7 +93,6 @@ local function show_blame_info()
 
     clear_virtual_text()
 
-    local line = vim.api.nvim_win_get_cursor(0)[1]
     if not filesData[filepath] or not filesData[filepath].blames then
         load_blames()
     end
@@ -109,6 +119,11 @@ local function show_blame_info()
                                       {{blame_text, 'gitblame'}}, {})
 end
 
+local function schedule_show_blame_info()
+    local timer = vim.loop.new_timer()
+    timer:start(8, 0, vim.schedule_wrap(function() show_blame_info() end))
+end
+
 local function cleanup_file_data()
     local filepath = vim.api.nvim_buf_get_name(0)
     filesData[filepath] = nil
@@ -130,7 +145,7 @@ end
 
 return {
     init = init,
-    show_blame_info = show_blame_info,
+    show_blame_info = schedule_show_blame_info,
     clear_virtual_text = clear_virtual_text,
     load_blames = load_blames,
     check_file_in_git_repo = check_file_in_git_repo,
