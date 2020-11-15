@@ -86,9 +86,8 @@ local function show_blame_info()
         last_position.line = line
     end
 
-    if not filesData[filepath] or not filesData[filepath].is_in_git_repo then
-        return
-    end
+    if not filesData[filepath] then load_blames() end
+    if not filesData[filepath].is_in_git_repo then return end
     if not filesData[filepath].blames then load_blames() end
 
     clear_virtual_text()
@@ -143,11 +142,14 @@ local function init()
     show_blame_info()
 end
 
+local function clear_files_data() filesData = {} end
+
 return {
     init = init,
     show_blame_info = schedule_show_blame_info,
     clear_virtual_text = clear_virtual_text,
     load_blames = load_blames,
     check_file_in_git_repo = check_file_in_git_repo,
-    cleanup_file_data = cleanup_file_data
+    cleanup_file_data = cleanup_file_data,
+    clear_files_data = clear_files_data
 }

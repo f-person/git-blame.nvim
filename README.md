@@ -18,7 +18,18 @@ something running on Node.js just for git blame was not the best thing.
 ## Demo
 ![demo](assets/demo.png?raw=true)
 
+## Configuration
+#### Enabled
+Enables git-blame.nvim on neovim startup.
+You can toggle git blame messages on/off with the `:GitBlameToggle` command.
+
+Default: `1`
+
+```vim
+let g:gitblame_enabled  = 0
+```
+
 # TODO
 
-* Customizable blame text format
-* Blame loading delay
+* Customizable info message format
+* Date ago format for dates
