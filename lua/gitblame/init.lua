@@ -66,7 +66,7 @@ end
 local function check_is_in_git_repo(filepath)
     if filepath == nil then return end
     vim.fn.system('git ls-files --error-unmatch ' .. filepath)
-    return vim.v['shell_error'] == 0
+    return vim.v.shell_error == 0
 end
 
 local function check_file_in_git_repo()
@@ -107,9 +107,11 @@ local function show_blame_info()
         formatted_date = info.date.day .. '.' .. info.date.month .. '.' ..
                              info.date.year .. ', ' .. info.date.hour .. ':' ..
                              info.date.min
-        blame_text =
-            '  ' .. info.author .. ' • ' .. formatted_date .. ' • ' ..
-                info.summary
+
+        blame_text = vim.g.gitblame_message_template
+        blame_text = blame_text:gsub('<author>', info.author)
+        blame_text = blame_text:gsub('<date>', formatted_date)
+        blame_text = blame_text:gsub('<summary>', info.summary)
     else
         blame_text = '  Not Committed Yet'
     end

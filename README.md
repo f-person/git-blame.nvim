@@ -29,6 +29,17 @@ Default: `1`
 let g:gitblame_enabled  = 0
 ```
 
+#### Message template
+The template for the blame message that will be shown.
+
+Default: `'  <author> • <date> • <summary>'`
+
+Available options: `<author>`, `<date>`, `<summary>`
+
+```vim
+let g:gitblame_message_template = '<summary> • <date> • <author>'
+```
+
 # TODO
 
 * Customizable info message format

@@ -1,5 +1,6 @@
 highlight default link gitblame Comment
 let g:gitblame_enabled = get(g:, 'gitblame_enabled', 1)
+let g:gitblame_message_template = get(g:, 'gitblame_message_template', '  <author> • <date> • <summary>')
 
 function! GitBlameInit()
 	if g:gitblame_enabled == 0
