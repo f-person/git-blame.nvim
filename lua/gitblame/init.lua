@@ -77,6 +77,7 @@ end
 
 local function show_blame_info()
     local filepath = vim.api.nvim_buf_get_name(0)
+    if filepath:match('^term://') then return end
     local line = vim.api.nvim_win_get_cursor(0)[1]
 
     if last_position.filepath == filepath and last_position.line == line then
