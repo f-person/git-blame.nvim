@@ -75,6 +75,11 @@ local function check_file_in_git_repo()
     filesData[filepath].is_in_git_repo = check_is_in_git_repo(filepath)
 end
 
+local function schedule_check_file_in_git_repo()
+    local timer = vim.loop.new_timer()
+    timer:start(8, 0, vim.schedule_wrap(function() check_file_in_git_repo() end))
+end
+
 local function show_blame_info()
     local filepath = vim.api.nvim_buf_get_name(0)
     if filepath:match('^term://') then return end
@@ -152,7 +157,7 @@ return {
     show_blame_info = schedule_show_blame_info,
     clear_virtual_text = clear_virtual_text,
     load_blames = load_blames,
-    check_file_in_git_repo = check_file_in_git_repo,
+    check_file_in_git_repo = schedule_check_file_in_git_repo,
     cleanup_file_data = cleanup_file_data,
     clear_files_data = clear_files_data
 }
