@@ -1,3 +1,5 @@
+local luajob = require('gitblame/luajob')
+
 local NAMESPACE_ID = 2
 
 local last_position = {}
@@ -63,21 +65,24 @@ local function load_blames()
     filesData[filepath].blames = blames
 end
 
-local function check_is_in_git_repo(filepath)
-    if filepath == nil then return end
-    vim.fn.system('git ls-files --error-unmatch ' .. filepath)
-    return vim.v.shell_error == 0
+---@param callback fun(is_in_git_repo: boolean)
+local function check_is_in_git_repo(callback)
+    local filepath = vim.api.nvim_buf_get_name(0)
+
+    local job = luajob:new({
+        cmd = 'git ls-files --error-unmatch ' .. filepath,
+        on_exit = function(code) callback(code == 0) end
+    })
+    job:start()
 end
 
 local function check_file_in_git_repo()
     local filepath = vim.api.nvim_buf_get_name(0)
     if not filesData[filepath] then filesData[filepath] = {} end
-    filesData[filepath].is_in_git_repo = check_is_in_git_repo(filepath)
-end
 
-local function schedule_check_file_in_git_repo()
-    local timer = vim.loop.new_timer()
-    timer:start(8, 0, vim.schedule_wrap(function() check_file_in_git_repo() end))
+    check_is_in_git_repo(function(is_in_git_repo)
+        filesData[filepath].is_in_git_repo = is_in_git_repo
+    end)
 end
 
 local function show_blame_info()
@@ -142,12 +147,14 @@ end
 
 local function init()
     filesData = {}
-    if not check_is_in_git_repo() then return end
+    check_is_in_git_repo(function(err)
+        if err then return end
 
-    find_current_author()
+        find_current_author()
 
-    load_blames()
-    show_blame_info()
+        load_blames()
+        show_blame_info()
+    end)
 end
 
 local function clear_files_data() filesData = {} end
@@ -157,7 +164,7 @@ return {
     show_blame_info = schedule_show_blame_info,
     clear_virtual_text = clear_virtual_text,
     load_blames = load_blames,
-    check_file_in_git_repo = schedule_check_file_in_git_repo,
+    check_file_in_git_repo = check_file_in_git_repo,
     cleanup_file_data = cleanup_file_data,
     clear_files_data = clear_files_data
 }
