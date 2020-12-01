@@ -1,26 +1,33 @@
 local luajob = require('gitblame/luajob')
 
+---@type integer
 local NAMESPACE_ID = 2
 
+---@type table<string, string>
 local last_position = {}
+
+---@type table<string, table>
+local files_data = {}
+
+---@type string
+local current_author
 
 local function clear_virtual_text()
     vim.api.nvim_buf_clear_namespace(0, NAMESPACE_ID, 0, -1)
 end
 
-local function load_blames()
-    local blames = {}
+---@param s string
+local function get_lines(s)
+    if s:sub(-1) ~= "\n" then s = s .. "\n" end
+    return s:gmatch("(.-)\n")
+end
 
-    local filepath = vim.api.nvim_buf_get_name(0)
-    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-    if #lines == 0 then return end
-
-    local blame_output = vim.fn.systemlist(
-                             'git --no-pager blame -b -p --date relative --contents - ' ..
-                                 filepath, table.concat(lines, '\n') .. '\n')
-
+---@param blames string[]
+---@param filepath string
+---@param blame_output string
+local function process_blame_output(blames, filepath, output)
     local info
-    for _, line in ipairs(blame_output) do
+    for line in get_lines(output) do
         local message = line:match('^([A-Za-z0-9]+) ([0-9]+) ([0-9]+) ([0-9]+)')
         if message then
             local parts = {}
@@ -50,7 +57,7 @@ local function load_blames()
         elseif info then
             if line:match('^author ') then
                 local author = line:gsub('^author ', '')
-                info.author = author == currentAuthor and 'You' or author
+                info.author = author == current_author and 'You' or author
             elseif line:match('^author%-time ') then
                 local text = line:gsub('^author%-time ', '')
                 info.date = os.date('*t', text)
@@ -61,11 +68,34 @@ local function load_blames()
         end
     end
 
-    if not filesData[filepath] then filesData[filepath] = {} end
-    filesData[filepath].blames = blames
+    if not files_data[filepath] then files_data[filepath] = {} end
+    files_data[filepath].blames = blames
 end
 
----@param callback fun(is_in_git_repo: boolean)
+---@param callback fun(): void
+local function load_blames(callback)
+    local blames = {}
+
+    local filepath = vim.api.nvim_buf_get_name(0)
+    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    if #lines == 0 then return end
+
+    local job = luajob:new({
+        cmd = 'git --no-pager blame -b -p --date relative --contents - ' ..
+            filepath,
+        on_stdout = function(err, data)
+            if data then
+                process_blame_output(blames, filepath, data)
+                if callback then callback() end
+            end
+
+        end
+    })
+    job.start()
+    job.send(table.concat(lines, '\n') .. '\n')
+end
+
+---@param callback fun(is_in_git_repo: boolean): void
 local function check_is_in_git_repo(callback)
     local filepath = vim.api.nvim_buf_get_name(0)
 
@@ -76,12 +106,18 @@ local function check_is_in_git_repo(callback)
     job:start()
 end
 
-local function check_file_in_git_repo()
+---@param callback fun(is_in_git_repo: boolean): void
+local function check_file_in_git_repo(callback)
     local filepath = vim.api.nvim_buf_get_name(0)
-    if not filesData[filepath] then filesData[filepath] = {} end
 
-    check_is_in_git_repo(function(is_in_git_repo)
-        filesData[filepath].is_in_git_repo = is_in_git_repo
+    vim.schedule(function()
+        check_is_in_git_repo(function(is_in_git_repo)
+            if not files_data[filepath] then
+                files_data[filepath] = {}
+            end
+            files_data[filepath].is_in_git_repo = is_in_git_repo
+            if callback then callback(is_in_git_repo) end
+        end)
     end)
 end
 
@@ -92,23 +128,30 @@ local function show_blame_info()
 
     if last_position.filepath == filepath and last_position.line == line then
         return
-    else
-        last_position.filepath = filepath
-        last_position.line = line
     end
 
-    if not filesData[filepath] then load_blames() end
-    if not filesData[filepath].is_in_git_repo then return end
-    if not filesData[filepath].blames then load_blames() end
+    if not files_data[filepath] then
+        load_blames(show_blame_info)
+        return
+    end
+    if not files_data[filepath].is_in_git_repo then return end
+    if not files_data[filepath].blames then
+        load_blames(show_blame_info)
+        return
+    end
 
     clear_virtual_text()
 
-    if not filesData[filepath] or not filesData[filepath].blames then
-        load_blames()
+    if not files_data[filepath] or not files_data[filepath].blames then
+        load_blames(show_blame_info)
+        return
     end
 
+    last_position.filepath = filepath
+    last_position.line = line
+
     local info, blame_text
-    for _, v in ipairs(filesData[filepath].blames) do
+    for _, v in ipairs(files_data[filepath].blames) do
         if line >= v.startline and line <= v.endline then
             info = v
             break
@@ -131,40 +174,43 @@ local function show_blame_info()
                                       {{blame_text, 'gitblame'}}, {})
 end
 
-local function schedule_show_blame_info()
-    local timer = vim.loop.new_timer()
-    timer:start(8, 0, vim.schedule_wrap(function() show_blame_info() end))
-end
-
 local function cleanup_file_data()
     local filepath = vim.api.nvim_buf_get_name(0)
-    filesData[filepath] = nil
+    files_data[filepath] = nil
 end
 
-local function find_current_author()
-    currentAuthor = vim.fn.system('git config --get user.name')
+---@param callback fun(current_author: string): void
+local function find_current_author(callback)
+    local job = luajob:new({
+        cmd = 'git config --get user.name',
+        on_stdout = function(err, data)
+            if data then
+                current_author = data:match('^%s*(.*%S)')
+                if callback then callback(current_author) end
+            end
+        end
+    })
+    job.start()
 end
 
-local function init()
-    filesData = {}
-    check_is_in_git_repo(function(err)
-        if err then return end
+local function clear_files_data() files_data = {} end
 
-        find_current_author()
+local function handle_buf_enter()
+    vim.schedule(function()
+        check_file_in_git_repo(function(is_in_git_repo)
+            if not is_in_git_repo then return end
 
-        load_blames()
-        show_blame_info()
+            vim.schedule(show_blame_info)
+        end)
     end)
 end
 
-local function clear_files_data() filesData = {} end
-
 return {
-    init = init,
-    show_blame_info = schedule_show_blame_info,
+    init = find_current_author,
+    show_blame_info = show_blame_info,
     clear_virtual_text = clear_virtual_text,
     load_blames = load_blames,
-    check_file_in_git_repo = check_file_in_git_repo,
     cleanup_file_data = cleanup_file_data,
-    clear_files_data = clear_files_data
+    clear_files_data = clear_files_data,
+    handle_buf_enter = handle_buf_enter
 }
