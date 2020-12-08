@@ -1,4 +1,4 @@
-local luajob = require('gitblame/luajob')
+local start_job = require('gitblame/utils').start_job
 
 ---@type integer
 local NAMESPACE_ID = 2
@@ -16,18 +16,14 @@ local function clear_virtual_text()
     vim.api.nvim_buf_clear_namespace(0, NAMESPACE_ID, 0, -1)
 end
 
----@param s string
-local function get_lines(s)
-    if s:sub(-1) ~= "\n" then s = s .. "\n" end
-    return s:gmatch("(.-)\n")
-end
-
 ---@param blames string[]
 ---@param filepath string
----@param blame_output string
-local function process_blame_output(blames, filepath, output)
+---@param lines string[]
+local function process_blame_output(blames, filepath, lines)
+    if not files_data[filepath] then files_data[filepath] = {} end
+    files_data[filepath].is_processing_blame_output = true
     local info
-    for line in get_lines(output) do
+    for _, line in ipairs(lines) do
         local message = line:match('^([A-Za-z0-9]+) ([0-9]+) ([0-9]+) ([0-9]+)')
         if message then
             local parts = {}
@@ -57,7 +53,7 @@ local function process_blame_output(blames, filepath, output)
         elseif info then
             if line:match('^author ') then
                 local author = line:gsub('^author ', '')
-                info.author = author == current_author and 'You' or author
+                info.author = author
             elseif line:match('^author%-time ') then
                 local text = line:gsub('^author%-time ', '')
                 info.date = os.date('*t', text)
@@ -70,9 +66,10 @@ local function process_blame_output(blames, filepath, output)
 
     if not files_data[filepath] then files_data[filepath] = {} end
     files_data[filepath].blames = blames
+    files_data[filepath].is_processing_blame_output = false
 end
 
----@param callback fun(): void
+---@param callback fun()
 local function load_blames(callback)
     local blames = {}
 
@@ -80,33 +77,25 @@ local function load_blames(callback)
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
     if #lines == 0 then return end
 
-    local job = luajob:new({
-        cmd = 'git --no-pager blame -b -p --date relative --contents - ' ..
-            filepath,
-        on_stdout = function(err, data)
-            if data then
-                process_blame_output(blames, filepath, data)
-                if callback then callback() end
-            end
-
+    start_job('git --no-pager blame -b -p --date relative --contents - ' ..
+                  filepath, {
+        input = table.concat(lines, '\n') .. '\n',
+        on_stdout = function(data)
+            process_blame_output(blames, filepath, data)
+            if callback then callback() end
         end
     })
-    job.start()
-    job.send(table.concat(lines, '\n') .. '\n')
 end
 
----@param callback fun(is_in_git_repo: boolean): void
+---@param callback fun(is_in_git_repo: boolean)
 local function check_is_in_git_repo(callback)
     local filepath = vim.api.nvim_buf_get_name(0)
 
-    local job = luajob:new({
-        cmd = 'git ls-files --error-unmatch ' .. filepath,
-        on_exit = function(code) callback(code == 0) end
-    })
-    job:start()
+    start_job('git ls-files --error-unmatch ' .. filepath,
+              {on_exit = function(data) callback(data == 0) end})
 end
 
----@param callback fun(is_in_git_repo: boolean): void
+---@param callback fun(is_in_git_repo: boolean)
 local function check_file_in_git_repo(callback)
     local filepath = vim.api.nvim_buf_get_name(0)
 
@@ -163,11 +152,15 @@ local function show_blame_info()
                              info.date.min
 
         blame_text = vim.g.gitblame_message_template
-        blame_text = blame_text:gsub('<author>', info.author)
+        blame_text = blame_text:gsub('<author>',
+                                     info.author == current_author and 'You' or
+                                         info.author)
         blame_text = blame_text:gsub('<date>', formatted_date)
         blame_text = blame_text:gsub('<summary>', info.summary)
-    else
+    elseif #files_data[filepath].blames > 0 then
         blame_text = '  Not Committed Yet'
+    else
+        return
     end
 
     vim.api.nvim_buf_set_virtual_text(0, NAMESPACE_ID, line - 1,
@@ -179,18 +172,14 @@ local function cleanup_file_data()
     files_data[filepath] = nil
 end
 
----@param callback fun(current_author: string): void
+---@param callback fun(current_author: string)
 local function find_current_author(callback)
-    local job = luajob:new({
-        cmd = 'git config --get user.name',
-        on_stdout = function(err, data)
-            if data then
-                current_author = data:match('^%s*(.*%S)')
-                if callback then callback(current_author) end
-            end
+    start_job('git config --get user.name', {
+        on_stdout = function(data)
+            current_author = data[1]
+            if callback then callback(current_author) end
         end
     })
-    job.start()
 end
 
 local function clear_files_data() files_data = {} end
@@ -205,8 +194,12 @@ local function handle_buf_enter()
     end)
 end
 
+local function init()
+    vim.schedule(function() find_current_author(show_blame_info) end)
+end
+
 return {
-    init = find_current_author,
+    init = init,
     show_blame_info = show_blame_info,
     clear_virtual_text = clear_virtual_text,
     load_blames = load_blames,
