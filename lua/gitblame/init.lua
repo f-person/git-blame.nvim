@@ -56,7 +56,7 @@ local function process_blame_output(blames, filepath, lines)
                 info.author = author
             elseif line:match('^author%-time ') then
                 local text = line:gsub('^author%-time ', '')
-                info.date = os.date('*t', text)
+                info.date = text
             elseif line:match('^summary ') then
                 local text = line:gsub('^summary ', '')
                 info.summary = text
@@ -147,9 +147,8 @@ local function show_blame_info()
         end
     end
     if info and info.author and info.author ~= 'Not Committed Yet' then
-        formatted_date = info.date.day .. '.' .. info.date.month .. '.' ..
-                             info.date.year .. ', ' .. info.date.hour .. ':' ..
-                             info.date.min
+        date_format = vim.g.gitblame_date_format
+        formatted_date = os.date(date_format, info.date)
 
         blame_text = vim.g.gitblame_message_template
         blame_text = blame_text:gsub('<author>',
