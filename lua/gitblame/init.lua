@@ -200,6 +200,7 @@ end
 
 return {
     init = init,
+    check_file_in_git_repo = check_file_in_git_repo,
     show_blame_info = show_blame_info,
     clear_virtual_text = clear_virtual_text,
     load_blames = load_blames,
