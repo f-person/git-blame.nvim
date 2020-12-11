@@ -147,9 +147,7 @@ local function show_blame_info()
         end
     end
     if info and info.author and info.author ~= 'Not Committed Yet' then
-        formatted_date = info.date.day .. '.' .. info.date.month .. '.' ..
-                             info.date.year .. ', ' .. info.date.hour .. ':' ..
-                             info.date.min
+        formatted_date = os.date('%c', os.time(info.date))
 
         blame_text = vim.g.gitblame_message_template
         blame_text = blame_text:gsub('<author>',
