@@ -73,5 +73,8 @@ let g:gitblame_date_format = '%d/%m/%Y'
 
 # TODO
 
-* Customizable info message format
 * Date ago format for dates
+
+# Thanks To
+* [coc-git](https://github.com/neoclide/coc-git) for some parts of code.
+* [blamer.nvim](https://github.com/APZelos/blamer.nvim) for documentation inspiration.
