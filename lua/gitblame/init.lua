@@ -42,7 +42,9 @@ local function process_blame_output(blames, filepath, lines)
                 for _, found_info in ipairs(blames) do
                     if found_info.sha == parts[1] then
                         info.author = found_info.author
+                        info.committer = found_info.committer
                         info.date = found_info.date
+                        info.committer_date = found_info.committer_date
                         info.summary = found_info.summary
                         break
                     end
@@ -57,6 +59,12 @@ local function process_blame_output(blames, filepath, lines)
             elseif line:match('^author%-time ') then
                 local text = line:gsub('^author%-time ', '')
                 info.date = text
+            elseif line:match('^committer ') then
+                local committer = line:gsub('^committer ', '')
+                info.committer = committer
+            elseif line:match('^committer%-time ') then
+                local text = line:gsub('^committer%-time ', '')
+                info.committer_date = text
             elseif line:match('^summary ') then
                 local text = line:gsub('^summary ', '')
                 info.summary = text
@@ -146,15 +154,17 @@ local function show_blame_info()
             break
         end
     end
-    if info and info.author and info.author ~= 'Not Committed Yet' then
+    if info and info.author and info.date and info.committer and info.committer_date and
+        info.author ~= 'Not Committed Yet' then
         date_format = vim.g.gitblame_date_format
-        formatted_date = os.date(date_format, info.date)
 
         blame_text = vim.g.gitblame_message_template
         blame_text = blame_text:gsub('<author>',
-                                     info.author == current_author and 'You' or
-                                         info.author)
-        blame_text = blame_text:gsub('<date>', formatted_date)
+                                     info.author == current_author and 'You' or info.author)
+        blame_text = blame_text:gsub('<committer>',
+                                     info.committer == current_author and 'You' or info.committer)
+        blame_text = blame_text:gsub('<committer%-date>', os.date(date_format, info.committer_date))
+        blame_text = blame_text:gsub('<date>', os.date(date_format, info.date))
         blame_text = blame_text:gsub('<summary>', info.summary)
     elseif #files_data[filepath].blames > 0 then
         blame_text = '  Not Committed Yet'
