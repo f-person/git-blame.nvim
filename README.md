@@ -34,7 +34,7 @@ The template for the blame message that will be shown.
 
 Default: `'  <author> • <date> • <summary>'`
 
-Available options: `<author>`, `<date>`, `<summary>`
+Available options: `<author>`, `<committer>`, `<date>`, `<committer-date>`, `<summary>`
 
 ```vim
 let g:gitblame_message_template = '<summary> • <date> • <author>'
