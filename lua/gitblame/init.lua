@@ -154,16 +154,19 @@ local function show_blame_info()
             break
         end
     end
-    if info and info.author and info.date and info.committer and info.committer_date and
-        info.author ~= 'Not Committed Yet' then
+    if info and info.author and info.date and info.committer and
+        info.committer_date and info.author ~= 'Not Committed Yet' then
         date_format = vim.g.gitblame_date_format
 
         blame_text = vim.g.gitblame_message_template
         blame_text = blame_text:gsub('<author>',
-                                     info.author == current_author and 'You' or info.author)
-        blame_text = blame_text:gsub('<committer>',
-                                     info.committer == current_author and 'You' or info.committer)
-        blame_text = blame_text:gsub('<committer%-date>', os.date(date_format, info.committer_date))
+                                     info.author == current_author and 'You' or
+                                         info.author)
+        blame_text = blame_text:gsub('<committer>', info.committer ==
+                                         current_author and 'You' or
+                                         info.committer)
+        blame_text = blame_text:gsub('<committer%-date>',
+                                     os.date(date_format, info.committer_date))
         blame_text = blame_text:gsub('<date>', os.date(date_format, info.date))
         blame_text = blame_text:gsub('<summary>', info.summary)
     elseif #files_data[filepath].blames > 0 then
