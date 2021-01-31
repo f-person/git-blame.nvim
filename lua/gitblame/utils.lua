@@ -1,5 +1,13 @@
 local M = {}
 
+function __FILE__() return debug.getinfo(3, 'S').source end
+function __LINE__() return debug.getinfo(3, 'l').currentline end
+function __FUNC__() return debug.getinfo(3, 'n').name end
+
+function M.log(text)
+    print(string.format('[%s][%s-%s] %s', os.clock(), __FUNC__(), __LINE__(), text))
+end
+
 ---@param cmd string
 ---@param opts table
 ---@return number | 'the job id'
