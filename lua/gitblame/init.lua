@@ -1,4 +1,5 @@
 local start_job = require('gitblame/utils').start_job
+local log       = require('gitblame/utils').log
 
 ---@type integer
 local NAMESPACE_ID = 2
@@ -77,16 +78,39 @@ local function process_blame_output(blames, filepath, lines)
     files_data[filepath].is_processing_blame_output = false
 end
 
+local function get_git_repo_root()
+    local filepath = vim.api.nvim_buf_get_name(0)
+    if filepath == "" then return "" end
+
+    local git_root = ""
+
+    if not files_data[filepath] then files_data[filepath] = {} end
+
+    if files_data[filepath].git_repo_path then
+        git_root = files_data[filepath].git_repo_path
+    else
+        git_root = vim.fn.finddir('.git/..', filepath .. ';')
+        files_data[filepath].git_repo_path = git_root
+    end
+    return git_root
+end
+
 ---@param callback fun()
 local function load_blames(callback)
     local blames = {}
 
-    local filepath = vim.api.nvim_buf_get_name(0)
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
     if #lines == 0 then return end
 
-    start_job('git --no-pager blame -b -p --date relative --contents - ' ..
-                  filepath, {
+    local filepath = vim.api.nvim_buf_get_name(0)
+    if filepath == "" then return end
+
+    local git_root = get_git_repo_root()
+    if git_root == "" then return end
+
+    local command = 'git --no-pager -C ' .. git_root ..
+                    ' blame -b -p --date relative --contents - ' .. filepath
+    start_job(command, {
         input = table.concat(lines, '\n') .. '\n',
         on_stdout = function(data)
             process_blame_output(blames, filepath, data)
@@ -95,32 +119,11 @@ local function load_blames(callback)
     })
 end
 
----@param callback fun(is_in_git_repo: boolean)
-local function check_is_in_git_repo(callback)
-    local filepath = vim.api.nvim_buf_get_name(0)
-
-    start_job('git ls-files --error-unmatch ' .. filepath,
-              {on_exit = function(data) callback(data == 0) end})
-end
-
----@param callback fun(is_in_git_repo: boolean)
-local function check_file_in_git_repo(callback)
-    local filepath = vim.api.nvim_buf_get_name(0)
-
-    vim.schedule(function()
-        check_is_in_git_repo(function(is_in_git_repo)
-            if not files_data[filepath] then
-                files_data[filepath] = {}
-            end
-            files_data[filepath].is_in_git_repo = is_in_git_repo
-            if callback then callback(is_in_git_repo) end
-        end)
-    end)
-end
-
 local function show_blame_info()
     local filepath = vim.api.nvim_buf_get_name(0)
+    if filepath == "" then return end
     if filepath:match('^term://') then return end
+
     local line = vim.api.nvim_win_get_cursor(0)[1]
 
     if last_position.filepath == filepath and last_position.line == line then
@@ -131,18 +134,13 @@ local function show_blame_info()
         load_blames(show_blame_info)
         return
     end
-    if not files_data[filepath].is_in_git_repo then return end
+    if files_data[filepath].git_repo_path == "" then return end
     if not files_data[filepath].blames then
         load_blames(show_blame_info)
         return
     end
 
     clear_virtual_text()
-
-    if not files_data[filepath] or not files_data[filepath].blames then
-        load_blames(show_blame_info)
-        return
-    end
 
     last_position.filepath = filepath
     last_position.line = line
@@ -197,13 +195,10 @@ end
 local function clear_files_data() files_data = {} end
 
 local function handle_buf_enter()
-    vim.schedule(function()
-        check_file_in_git_repo(function(is_in_git_repo)
-            if not is_in_git_repo then return end
+    local git_repo_path = get_git_repo_root()
+    if git_repo_path == "" then return end
 
-            vim.schedule(show_blame_info)
-        end)
-    end)
+    vim.schedule(function() show_blame_info() end)
 end
 
 local function init()
@@ -212,7 +207,7 @@ end
 
 return {
     init = init,
-    check_file_in_git_repo = check_file_in_git_repo,
+    get_git_repo_root = get_git_repo_root,
     show_blame_info = show_blame_info,
     clear_virtual_text = clear_virtual_text,
     load_blames = load_blames,

@@ -29,8 +29,6 @@ function! GitBlameEnable()
 
 	let g:gitblame_enabled = 1
 	call GitBlameInit()
-	lua require('gitblame').check_file_in_git_repo()
-	lua require('gitblame').show_blame_info()
 endfunction
 
 function! GitBlameDisable()
