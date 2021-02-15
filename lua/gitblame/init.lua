@@ -1,5 +1,5 @@
 local start_job = require('gitblame/utils').start_job
-local log       = require('gitblame/utils').log
+local log = require('gitblame/utils').log
 
 ---@type integer
 local NAMESPACE_ID = 2
@@ -109,7 +109,7 @@ local function load_blames(callback)
     if git_root == "" then return end
 
     local command = 'git --no-pager -C ' .. git_root ..
-                    ' blame -b -p --date relative --contents - ' .. filepath
+                        ' blame -b -p --date relative --contents - ' .. filepath
     start_job(command, {
         input = table.concat(lines, '\n') .. '\n',
         on_stdout = function(data)
@@ -167,6 +167,7 @@ local function show_blame_info()
                                      os.date(date_format, info.committer_date))
         blame_text = blame_text:gsub('<date>', os.date(date_format, info.date))
         blame_text = blame_text:gsub('<summary>', info.summary)
+        blame_text = blame_text:gsub('<sha>', string.sub(info.sha, 1, 7))
     elseif #files_data[filepath].blames > 0 then
         blame_text = '  Not Committed Yet'
     else
