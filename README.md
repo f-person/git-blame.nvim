@@ -26,7 +26,7 @@ You can toggle git blame messages on/off with the `:GitBlameToggle` command.
 Default: `1`
 
 ```vim
-let g:gitblame_enabled  = 0
+let g:gitblame_enabled = 0
 ```
 
 #### Message template
