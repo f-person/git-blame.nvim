@@ -2,7 +2,7 @@ local start_job = require('gitblame/utils').start_job
 local log = require('gitblame/utils').log
 
 ---@type integer
-local NAMESPACE_ID = 2
+local NAMESPACE_ID = vim.api.nvim_create_namespace('git-blame-virtual-text')
 
 ---@type table<string, string>
 local last_position = {}
