@@ -14,9 +14,8 @@ function! GitBlameInit()
 		autocmd!
 		autocmd CursorMoved  * lua require('gitblame').show_blame_info()
 		autocmd CursorMovedI * lua require('gitblame').clear_virtual_text()
-		autocmd TextChanged  * lua require('gitblame').load_blames()
-		autocmd InsertLeave  * lua require('gitblame').load_blames()
-		autocmd InsertLeave  * lua require('gitblame').show_blame_info()
+		autocmd TextChanged  * lua require('gitblame').handle_text_changed()
+		autocmd InsertLeave  * lua require('gitblame').handle_insert_leave()
 		autocmd BufEnter     * lua require('gitblame').handle_buf_enter()
 		autocmd BufDelete    * lua require('gitblame').cleanup_file_data()
 	augroup END

@@ -13,11 +13,14 @@ local files_data = {}
 ---@type string
 local current_author
 
+---@type boolean
+local need_update_after_horizontal_move = false
+
 local function clear_virtual_text()
     vim.api.nvim_buf_clear_namespace(0, NAMESPACE_ID, 0, -1)
 end
 
----@param blames string[]
+---@param blames table[]
 ---@param filepath string
 ---@param lines string[]
 local function process_blame_output(blames, filepath, lines)
@@ -127,7 +130,11 @@ local function show_blame_info()
     local line = vim.api.nvim_win_get_cursor(0)[1]
 
     if last_position.filepath == filepath and last_position.line == line then
-        return
+        if not need_update_after_horizontal_move then
+            return
+        else
+            need_update_after_horizontal_move = false
+        end
     end
 
     if not files_data[filepath] then
@@ -206,6 +213,25 @@ local function init()
     vim.schedule(function() find_current_author(show_blame_info) end)
 end
 
+local function handle_text_changed()
+    local filepath = vim.api.nvim_buf_get_name(0)
+    if filepath == "" then return end
+    if filepath:match('^term://') then return end
+
+    local line = vim.api.nvim_win_get_cursor(0)[1]
+
+    if last_position.filepath == filepath and last_position.line == line then
+        need_update_after_horizontal_move = true
+    end
+
+    load_blames(show_blame_info)
+end
+
+local function handle_insert_leave()
+    local timer = vim.loop.new_timer()
+    timer:start(50, 0, vim.schedule_wrap(function() handle_text_changed() end))
+end
+
 return {
     init = init,
     get_git_repo_root = get_git_repo_root,
@@ -214,5 +240,7 @@ return {
     load_blames = load_blames,
     cleanup_file_data = cleanup_file_data,
     clear_files_data = clear_files_data,
-    handle_buf_enter = handle_buf_enter
+    handle_buf_enter = handle_buf_enter,
+    handle_text_changed = handle_text_changed,
+    handle_insert_leave = handle_insert_leave
 }
