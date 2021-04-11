@@ -47,6 +47,7 @@ Default: `%c`
 
 Available options:
 ```
+%r	relative date (e.g., 3 days ago)
 %a	abbreviated weekday name (e.g., Wed)
 %A	full weekday name (e.g., Wednesday)
 %b	abbreviated month name (e.g., Sep)
@@ -68,12 +69,8 @@ Available options:
 ```
 
 ```vim
-let g:gitblame_date_format = '%d/%m/%Y'
+let g:gitblame_date_format = '%r'
 ```
-
-# TODO
-
-* Date ago format for dates
 
 # Thanks To
 * [coc-git](https://github.com/neoclide/coc-git) for some parts of code.

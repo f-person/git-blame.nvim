@@ -1,5 +1,6 @@
 local start_job = require('gitblame/utils').start_job
 local log = require('gitblame/utils').log
+local timeago = require('lua-timeago')
 
 ---@type integer
 local NAMESPACE_ID = vim.api.nvim_create_namespace('git-blame-virtual-text')
@@ -15,6 +16,12 @@ local current_author
 
 ---@type boolean
 local need_update_after_horizontal_move = false
+
+---@type string
+local date_format = vim.g.gitblame_date_format
+
+---@type boolean
+local date_format_has_relative_time
 
 local function clear_virtual_text()
     vim.api.nvim_buf_clear_namespace(0, NAMESPACE_ID, 0, -1)
@@ -122,6 +129,17 @@ local function load_blames(callback)
     })
 end
 
+---@param date osdate
+---@return string
+local function format_date(date)
+    local format = date_format
+    if date_format_has_relative_time then
+        format = format:gsub("%%r", timeago.format(date))
+    end
+
+    return os.date(format, date)
+end
+
 local function show_blame_info()
     local filepath = vim.api.nvim_buf_get_name(0)
     if filepath == "" then return end
@@ -161,8 +179,6 @@ local function show_blame_info()
     end
     if info and info.author and info.date and info.committer and
         info.committer_date and info.author ~= 'Not Committed Yet' then
-        date_format = vim.g.gitblame_date_format
-
         blame_text = vim.g.gitblame_message_template
         blame_text = blame_text:gsub('<author>',
                                      info.author == current_author and 'You' or
@@ -171,8 +187,8 @@ local function show_blame_info()
                                          current_author and 'You' or
                                          info.committer)
         blame_text = blame_text:gsub('<committer%-date>',
-                                     os.date(date_format, info.committer_date))
-        blame_text = blame_text:gsub('<date>', os.date(date_format, info.date))
+                                     format_date(info.committer_date))
+        blame_text = blame_text:gsub('<date>', format_date(info.date))
         blame_text = blame_text:gsub('<summary>', info.summary)
         blame_text = blame_text:gsub('<sha>', string.sub(info.sha, 1, 7))
     elseif #files_data[filepath].blames > 0 then
@@ -210,6 +226,7 @@ local function handle_buf_enter()
 end
 
 local function init()
+    date_format_has_relative_time = date_format:match('%%r') ~= nil
     vim.schedule(function() find_current_author(show_blame_info) end)
 end
 
