@@ -29,7 +29,6 @@ local function round(num) return math.floor(num + 0.5) end
 ---@param time osdate
 ---@return string
 function M.format(time)
-    print('hello')
     local now = os.time()
     local diff_seconds = os.difftime(now, time)
     if diff_seconds < 45 then return language.justnow end
