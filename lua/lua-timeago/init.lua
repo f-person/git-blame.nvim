@@ -40,7 +40,7 @@ function M.format(time)
     end
 
     local diff_hours = diff_minutes / 60
-    if diff_hours < 1.5 then return language.hour.single end
+    if diff_hours < 1.5 then return language.hour.singular end
     if diff_hours < 23.5 then
         return round(diff_hours) .. ' ' .. language.hour.plural
     end
