@@ -72,6 +72,15 @@ Available options:
 let g:gitblame_date_format = '%r'
 ```
 
+#### Highlight group
+Which Highlight group to use for the virtual text.
+
+Default: `Comment`
+
+```vim
+let g:gitblame_highlight_group = "Question"
+```
+
 # Thanks To
 * [coc-git](https://github.com/neoclide/coc-git) for some parts of code.
 * [blamer.nvim](https://github.com/APZelos/blamer.nvim) for documentation inspiration.
