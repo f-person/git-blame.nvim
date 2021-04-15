@@ -73,7 +73,7 @@ let g:gitblame_date_format = '%r'
 ```
 
 #### Highlight group
-Which Highlight group to use for the virtual text.
+The highlight group for virtual text.
 
 Default: `Comment`
 
