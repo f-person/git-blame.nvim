@@ -20,11 +20,14 @@ local need_update_after_horizontal_move = false
 ---@type string
 local date_format = vim.g.gitblame_date_format
 
+-- @type string
+local virt_text_pos = vim.g.gitblame_position and vim.g.gitblame_position or 'eol'
+
 ---@type boolean
 local date_format_has_relative_time
 
 local function clear_virtual_text()
-    vim.api.nvim_buf_clear_namespace(0, NAMESPACE_ID, 0, -1)
+    vim.api.nvim_buf_del_extmark(0, NAMESPACE_ID, 1)
 end
 
 ---@param blames table[]
@@ -197,8 +200,11 @@ local function show_blame_info()
         return
     end
 
-    vim.api.nvim_buf_set_virtual_text(0, NAMESPACE_ID, line - 1,
-                                      {{blame_text, 'gitblame'}}, {})
+   vim.api.nvim_buf_set_extmark(0, NAMESPACE_ID, line - 1, 0, {
+      id = 1,
+      virt_text = {{blame_text, 'gitblame'}},
+      virt_text_pos = virt_text_pos
+   })
 end
 
 local function cleanup_file_data()

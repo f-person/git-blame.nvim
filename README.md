@@ -81,6 +81,15 @@ Default: `Comment`
 let g:gitblame_highlight_group = "Question"
 ```
 
+#### Virtual text position
+The position for virtual text (`eol`, `overlay`, `right_align`).
+
+Default: `eol`
+
+```vim
+let g:gitblame_position = "eol"
+```
+
 # Thanks To
 * [coc-git](https://github.com/neoclide/coc-git) for some parts of code.
 * [blamer.nvim](https://github.com/APZelos/blamer.nvim) for documentation inspiration.
