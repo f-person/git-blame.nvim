@@ -8,6 +8,10 @@ A git blame plugin for Neovim written in Lua
 Plug 'f-person/git-blame.nvim'
 ```
 
+## Requirements
+* Neovim >= 0.5.0
+* git
+
 ## The Why
 There were several Vim plugins providing this functionality, however most of them were
 written in VimScript and didn't work well for me. [coc-git](https://github.com/neoclide/coc-git) also had
@@ -17,6 +21,9 @@ something running on Node.js just for git blame was not the best thing.
 
 ## Demo
 ![demo](assets/demo.png?raw=true)
+
+## Requirements
+Neovim
 
 ## Configuration
 #### Enabled
