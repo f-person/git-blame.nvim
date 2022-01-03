@@ -88,6 +88,16 @@ Default: `Comment`
 let g:gitblame_highlight_group = "Question"
 ```
 
+## Commands
+#### Open the commit URL in browser
+`:GitBlameOpenCommitURL` opens the commit URL of commit under the cursor.
+Tested to work with GitHub and GitLab.
+
+#### Enable/Disable git blame messages
+* `:GitBlameToggle` toggles git blame on/off,
+* `:GitBlameEnable` enables git blame messages,
+* `:GitBlameDisable` disables git blame messages.
+
 # Thanks To
 * [coc-git](https://github.com/neoclide/coc-git) for some parts of code.
 * [blamer.nvim](https://github.com/APZelos/blamer.nvim) for documentation inspiration.

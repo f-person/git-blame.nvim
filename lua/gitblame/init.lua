@@ -186,12 +186,20 @@ local function get_blame_text(filepath, blame_info, callback)
 
 end
 
-local function show_blame_info()
+---@return string|nil
+local function get_filepath()
     local filepath = vim.api.nvim_buf_get_name(0)
-    if filepath == "" then return end
-    if filepath:match('^term://') then return end
+    if filepath == "" then return nil end
+    if filepath:match('^term://') then return nil end
+    return filepath
+end
 
-    local line = vim.api.nvim_win_get_cursor(0)[1]
+---@return number
+local function get_line_number() return vim.api.nvim_win_get_cursor(0)[1] end
+
+local function show_blame_info()
+    local filepath = get_filepath()
+    local line = get_line_number()
 
     if last_position.filepath == filepath and last_position.line == line then
         if not need_update_after_horizontal_move then
@@ -274,6 +282,16 @@ local function handle_insert_leave()
     timer:start(50, 0, vim.schedule_wrap(function() handle_text_changed() end))
 end
 
+local function open_commit_url()
+    local filepath = get_filepath()
+    local line_number = get_line_number()
+    local info = get_blame_info(filepath, line_number)
+    local sha = info.sha
+    local empty_sha = '0000000000000000000000000000000000000000'
+
+    if sha and sha ~= empty_sha then git.open_commit_in_browser(sha) end
+end
+
 return {
     init = init,
     get_git_repo_root = get_git_repo_root,
@@ -284,5 +302,6 @@ return {
     clear_files_data = clear_files_data,
     handle_buf_enter = handle_buf_enter,
     handle_text_changed = handle_text_changed,
-    handle_insert_leave = handle_insert_leave
+    handle_insert_leave = handle_insert_leave,
+    open_commit_url = open_commit_url
 }

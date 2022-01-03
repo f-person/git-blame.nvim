@@ -50,8 +50,13 @@ function! GitBlameToggle()
 	endif
 endfunction
 
+function! GitBlameOpenCommitURL() 
+    lua require('gitblame').open_commit_url()
+endfunction
+
 :command! -nargs=0 GitBlameToggle call GitBlameToggle()
 :command! -nargs=0 GitBlameEnable call GitBlameEnable()
 :command! -nargs=0 GitBlameDisable call GitBlameDisable()
+:command! -nargs=0 GitBlameOpenCommitURL call GitBlameOpenCommitURL()
 
 call GitBlameInit()

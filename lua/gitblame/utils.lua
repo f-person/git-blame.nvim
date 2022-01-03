@@ -26,6 +26,7 @@ end
 ---@param opts table
 ---@return number | 'the job id'
 function M.start_job(cmd, opts)
+    opts = opts or {}
     local id = vim.fn.jobstart(cmd, {
         stdout_buffered = true,
         on_stdout = function(_, data, _)
