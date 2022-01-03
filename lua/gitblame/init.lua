@@ -1,5 +1,6 @@
-local start_job = require('gitblame/utils').start_job
-local log = require('gitblame/utils').log
+local git = require('gitblame.git')
+local utils = require('gitblame.utils')
+local start_job = utils.start_job
 local timeago = require('lua-timeago')
 
 ---@type integer
@@ -32,7 +33,6 @@ end
 ---@param lines string[]
 local function process_blame_output(blames, filepath, lines)
     if not files_data[filepath] then files_data[filepath] = {} end
-    files_data[filepath].is_processing_blame_output = true
     local info
     for _, line in ipairs(lines) do
         local message = line:match('^([A-Za-z0-9]+) ([0-9]+) ([0-9]+) ([0-9]+)')
@@ -85,9 +85,9 @@ local function process_blame_output(blames, filepath, lines)
 
     if not files_data[filepath] then files_data[filepath] = {} end
     files_data[filepath].blames = blames
-    files_data[filepath].is_processing_blame_output = false
 end
 
+---@return string
 local function get_git_repo_root()
     local filepath = vim.api.nvim_buf_get_name(0)
     if filepath == "" then return "" end
@@ -140,6 +140,52 @@ local function format_date(date)
     return os.date(format, date)
 end
 
+---@param filepath string
+---@param linenumber number
+local function get_blame_info(filepath, linenumber)
+    local info
+    for _, v in ipairs(files_data[filepath].blames) do
+        if linenumber >= v.startline and linenumber <= v.endline then
+            info = v
+            break
+        end
+    end
+    return info
+end
+
+---@param blame_info table
+---@param callback fun(blame_text: string)
+local function get_blame_text(filepath, blame_info, callback)
+    local info = blame_info
+    local isBlameInfoAvailable = info and info.author and info.date and
+                                     info.committer and info.committer_date and
+                                     info.author ~= 'Not Committed Yet'
+
+    local notCommitedBlameText = '  Not Committed Yet'
+    if isBlameInfoAvailable then
+        local blame_text = vim.g.gitblame_message_template
+        blame_text = blame_text:gsub('<author>',
+                                     info.author == current_author and 'You' or
+                                         info.author)
+        blame_text = blame_text:gsub('<committer>', info.committer ==
+                                         current_author and 'You' or
+                                         info.committer)
+        blame_text = blame_text:gsub('<committer%-date>',
+                                     format_date(info.committer_date))
+        blame_text = blame_text:gsub('<date>', format_date(info.date))
+        blame_text = blame_text:gsub('<summary>', info.summary)
+        blame_text = blame_text:gsub('<sha>', string.sub(info.sha, 1, 7))
+        callback(blame_text)
+    elseif #files_data[filepath].blames > 0 then
+        callback(notCommitedBlameText)
+    else
+        git.check_is_ignored(function(is_ignored)
+            callback(not is_ignored and notCommitedBlameText or nil)
+        end)
+    end
+
+end
+
 local function show_blame_info()
     local filepath = vim.api.nvim_buf_get_name(0)
     if filepath == "" then return end
@@ -165,40 +211,19 @@ local function show_blame_info()
         return
     end
 
-    clear_virtual_text()
-
     last_position.filepath = filepath
     last_position.line = line
 
-    local info, blame_text
-    for _, v in ipairs(files_data[filepath].blames) do
-        if line >= v.startline and line <= v.endline then
-            info = v
-            break
-        end
-    end
-    if info and info.author and info.date and info.committer and
-        info.committer_date and info.author ~= 'Not Committed Yet' then
-        blame_text = vim.g.gitblame_message_template
-        blame_text = blame_text:gsub('<author>',
-                                     info.author == current_author and 'You' or
-                                         info.author)
-        blame_text = blame_text:gsub('<committer>', info.committer ==
-                                         current_author and 'You' or
-                                         info.committer)
-        blame_text = blame_text:gsub('<committer%-date>',
-                                     format_date(info.committer_date))
-        blame_text = blame_text:gsub('<date>', format_date(info.date))
-        blame_text = blame_text:gsub('<summary>', info.summary)
-        blame_text = blame_text:gsub('<sha>', string.sub(info.sha, 1, 7))
-    elseif #files_data[filepath].blames > 0 then
-        blame_text = '  Not Committed Yet'
-    else
-        return
-    end
+    local info = get_blame_info(filepath, line)
+    get_blame_text(filepath, info, function(blame_text)
+        clear_virtual_text()
 
-    vim.api.nvim_buf_set_virtual_text(0, NAMESPACE_ID, line - 1,
-                                      {{blame_text, 'gitblame'}}, {})
+        if blame_text then
+            vim.api.nvim_buf_set_virtual_text(0, NAMESPACE_ID, line - 1,
+                                              {{blame_text, 'gitblame'}}, {})
+        end
+    end)
+
 end
 
 local function cleanup_file_data()
