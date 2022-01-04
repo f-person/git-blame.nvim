@@ -45,4 +45,15 @@ function M.start_job(cmd, opts)
     return id
 end
 
+---@return string|nil
+function M.get_filepath()
+    local filepath = vim.api.nvim_buf_get_name(0)
+    if filepath == "" then return nil end
+    if filepath:match('^term://') then return nil end
+    return filepath
+end
+
+---@return number
+function M.get_line_number() return vim.api.nvim_win_get_cursor(0)[1] end
+
 return M
