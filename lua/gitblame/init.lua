@@ -87,22 +87,15 @@ local function process_blame_output(blames, filepath, lines)
     files_data[filepath].blames = blames
 end
 
----@return string
-local function get_git_repo_root()
-    local filepath = vim.api.nvim_buf_get_name(0)
-    if filepath == "" then return "" end
+---@param callback fun()
+local function get_git_repo_root(callback)
+    local command = 'git rev-parse --show-toplevel'
 
-    local git_root = ""
-
-    if not files_data[filepath] then files_data[filepath] = {} end
-
-    if files_data[filepath].git_repo_path then
-        git_root = files_data[filepath].git_repo_path
-    else
-        git_root = vim.fn.finddir('.git/..', filepath .. ';')
-        files_data[filepath].git_repo_path = git_root
-    end
-    return git_root
+    start_job(command, {
+        on_stdout = function(data)
+            if callback then callback(data[1]) end
+        end
+    })
 end
 
 ---@param callback fun()
@@ -115,18 +108,19 @@ local function load_blames(callback)
     local filepath = vim.api.nvim_buf_get_name(0)
     if filepath == "" then return end
 
-    local git_root = get_git_repo_root()
-    if git_root == "" then return end
+    
+    get_git_repo_root(function(git_root)
+        local command = 'git --no-pager -C ' .. git_root ..
+                            ' blame -b -p --date relative --contents - ' .. filepath
 
-    local command = 'git --no-pager -C ' .. git_root ..
-                        ' blame -b -p --date relative --contents - ' .. filepath
-    start_job(command, {
-        input = table.concat(lines, '\n') .. '\n',
-        on_stdout = function(data)
-            process_blame_output(blames, filepath, data)
-            if callback then callback() end
-        end
-    })
+        start_job(command, {
+            input = table.concat(lines, '\n') .. '\n',
+            on_stdout = function(data)
+                process_blame_output(blames, filepath, data)
+                if callback then callback() end
+            end
+        })
+    end)
 end
 
 ---@param date osdate
@@ -240,10 +234,11 @@ end
 local function clear_files_data() files_data = {} end
 
 local function handle_buf_enter()
-    local git_repo_path = get_git_repo_root()
-    if git_repo_path == "" then return end
+    get_git_repo_root(function (git_repo_path)
+        if git_repo_path == "" then return end
 
-    vim.schedule(function() show_blame_info() end)
+        vim.schedule(function() show_blame_info() end)
+    end)
 end
 
 local function init()
