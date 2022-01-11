@@ -38,10 +38,8 @@ function M.get_remote_url(callback)
     -- as it might not be user's shell and things will break in that case.
     local shell_command = "echo '" .. remote_url_command .. "' | sh"
 
-    utils.log(shell_command)
     utils.start_job(shell_command, {
         on_stdout = function(url)
-            utils.log('on_stdout ' .. url[1])
             if url and url[1] then
                 callback(url[1])
             else
