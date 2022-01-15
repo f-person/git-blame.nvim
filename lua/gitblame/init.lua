@@ -25,7 +25,7 @@ local date_format = vim.g.gitblame_date_format
 local date_format_has_relative_time
 
 local function clear_virtual_text()
-    vim.api.nvim_buf_clear_namespace(0, NAMESPACE_ID, 0, -1)
+    vim.api.nvim_buf_del_extmark(0, NAMESPACE_ID, 1)
 end
 
 ---@param blames table[]
@@ -198,8 +198,10 @@ local function show_blame_info()
         clear_virtual_text()
 
         if blame_text then
-            vim.api.nvim_buf_set_virtual_text(0, NAMESPACE_ID, line - 1,
-                                              {{blame_text, 'gitblame'}}, {})
+            vim.api.nvim_buf_set_extmark(0, NAMESPACE_ID, line - 1, 0, {
+                id = 1,
+                virt_text = {{blame_text, 'gitblame'}}
+            })
         end
     end)
 
