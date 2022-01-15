@@ -88,6 +88,19 @@ Default: `Comment`
 let g:gitblame_highlight_group = "Question"
 ```
 
+#### `nvim_buf_set_extmark` optional parameters
+`nvim_buf_set_extmark` is the function used for setting the virtual text.
+You can view an up-to-date full list of options in the
+[Neovim documentation](https://neovim.io/doc/user/api.html#nvim_buf_set_extmark()).
+
+Warning: overwriting `id` and `virt_text` will break the plugin behavior.
+
+```vim
+let g:gitblame_set_extmark_options = {
+	\ 'priority': 7,
+	\ }
+```
+
 ## Commands
 #### Open the commit URL in browser
 `:GitBlameOpenCommitURL` opens the commit URL of commit under the cursor.

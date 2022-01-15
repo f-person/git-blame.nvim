@@ -64,4 +64,11 @@ function M.get_posix_shell_command(command)
     return "echo '" .. command .. "' | sh"
 end
 
+---Merges map entries of `source` into `target`.
+---@param source table<any, any>
+---@param target table<any, any>
+function M.merge_map(source, target)
+    for k, v in pairs(source) do target[k] = v end
+end
+
 return M

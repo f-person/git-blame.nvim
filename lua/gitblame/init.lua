@@ -198,10 +198,15 @@ local function show_blame_info()
         clear_virtual_text()
 
         if blame_text then
-            vim.api.nvim_buf_set_extmark(0, NAMESPACE_ID, line - 1, 0, {
-                id = 1,
-                virt_text = {{blame_text, 'gitblame'}}
-            })
+            local options = {id = 1, virt_text = {{blame_text, 'gitblame'}}}
+            local user_options = vim.g.gitblame_set_extmark_options or {}
+            if type(user_options) == 'table' then
+                utils.merge_map(user_options, options)
+            elseif user_options then
+                utils.log('gitblame_set_extmark_options should be a table')
+            end
+
+            vim.api.nvim_buf_set_extmark(0, NAMESPACE_ID, line - 1, 0, options)
         end
     end)
 
