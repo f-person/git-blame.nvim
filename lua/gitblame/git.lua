@@ -34,11 +34,8 @@ function M.get_remote_url(callback)
     end
     local remote_url_command = 'cd "`dirname \'' .. filepath .. '\'`"' ..
                                    " && git config --get remote.origin.url"
-    -- Echo and pipe it to `sh` to execute in a POSIX shell
-    -- as it might not be user's shell and things will break in that case.
-    local shell_command = "echo '" .. remote_url_command .. "' | sh"
 
-    utils.start_job(shell_command, {
+    utils.start_job(utils.get_posix_shell_command(remote_url_command), {
         on_stdout = function(url)
             if url and url[1] then
                 callback(url[1])
@@ -46,6 +43,21 @@ function M.get_remote_url(callback)
                 callback(nil)
             end
         end
+    })
+end
+
+---@param callback fun()
+function M.get_repo_root(callback)
+    local filepath = utils.get_filepath()
+    if not filepath then
+        utils.log('filepath is empty')
+        return
+    end
+    local command = 'cd "`dirname \'' .. filepath .. '\'`"' ..
+                        ' && git rev-parse --show-toplevel'
+
+    utils.start_job(utils.get_posix_shell_command(command), {
+        on_stdout = function(data) if callback then callback(data[1]) end end
     })
 end
 

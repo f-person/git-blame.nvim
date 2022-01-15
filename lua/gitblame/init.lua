@@ -88,17 +88,6 @@ local function process_blame_output(blames, filepath, lines)
 end
 
 ---@param callback fun()
-local function get_git_repo_root(callback)
-    local command = 'git rev-parse --show-toplevel'
-
-    start_job(command, {
-        on_stdout = function(data)
-            if callback then callback(data[1]) end
-        end
-    })
-end
-
----@param callback fun()
 local function load_blames(callback)
     local blames = {}
 
@@ -108,10 +97,10 @@ local function load_blames(callback)
     local filepath = vim.api.nvim_buf_get_name(0)
     if filepath == "" then return end
 
-    
-    get_git_repo_root(function(git_root)
+    git.get_repo_root(function(git_root)
         local command = 'git --no-pager -C ' .. git_root ..
-                            ' blame -b -p --date relative --contents - ' .. filepath
+                            ' blame -b -p --date relative --contents - ' ..
+                            filepath
 
         start_job(command, {
             input = table.concat(lines, '\n') .. '\n',
@@ -234,7 +223,7 @@ end
 local function clear_files_data() files_data = {} end
 
 local function handle_buf_enter()
-    get_git_repo_root(function (git_repo_path)
+    git.get_repo_root(function(git_repo_path)
         if git_repo_path == "" then return end
 
         vim.schedule(function() show_blame_info() end)
@@ -276,7 +265,6 @@ end
 
 return {
     init = init,
-    get_git_repo_root = get_git_repo_root,
     show_blame_info = show_blame_info,
     clear_virtual_text = clear_virtual_text,
     load_blames = load_blames,

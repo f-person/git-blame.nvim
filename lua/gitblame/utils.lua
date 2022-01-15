@@ -56,4 +56,12 @@ end
 ---@return number
 function M.get_line_number() return vim.api.nvim_win_get_cursor(0)[1] end
 
+---Returns a command which will be ran in `sh`. This is useful in cases
+---where user's default shell is not POSIX-compliant.
+---@param command string
+---@return string
+function M.get_posix_shell_command(command)
+    return "echo '" .. command .. "' | sh"
+end
+
 return M
