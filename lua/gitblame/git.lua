@@ -21,7 +21,7 @@ end
 function M.open_commit_in_browser(sha)
     M.get_remote_url(function(remote_url)
         local commit_url = get_commit_url(sha, remote_url)
-        utils.start_job('open ' .. commit_url)
+        utils.launch_url(commit_url)
     end)
 end
 

@@ -209,7 +209,6 @@ local function show_blame_info()
             vim.api.nvim_buf_set_extmark(0, NAMESPACE_ID, line - 1, 0, options)
         end
     end)
-
 end
 
 local function cleanup_file_data()

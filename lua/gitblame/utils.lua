@@ -71,4 +71,30 @@ function M.merge_map(source, target)
     for k, v in pairs(source) do target[k] = v end
 end
 
+---Keeping it outside the function improves performance by not
+---finding the OS every time.
+local open_cmd
+---Attempts to open a given URL in the system default browser, regardless of the OS.
+---Source: https://stackoverflow.com/a/18864453/9714875
+---@param url string
+function M.launch_url(url)
+    if not open_cmd then
+        if package.config:sub(1, 1) == '\\' then
+            open_cmd = function(_url)
+                M.start_job(string.format('start "%s"', _url))
+            end
+        elseif (io.popen("uname -s"):read '*a'):match 'Darwin' then
+            open_cmd = function(_url)
+                M.start_job(string.format('open "%s"', _url))
+            end
+        else
+            open_cmd = function(_url)
+                M.start_job(string.format('xdg-open "%s"', _url))
+            end
+        end
+    end
+
+    open_cmd(url)
+end
+
 return M
