@@ -7,7 +7,7 @@ function M.check_is_ignored(callback)
     if filepath == "" then return true end
 
     utils.start_job('git check-ignore ' .. filepath,
-                    {on_exit = function(data) callback(data == 0) end})
+                    {on_exit = function(data) callback(data ~= 1) end})
 end
 
 ---@param sha string
