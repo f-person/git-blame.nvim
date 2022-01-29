@@ -24,6 +24,9 @@ local date_format = vim.g.gitblame_date_format
 ---@type boolean
 local date_format_has_relative_time
 
+---@type string
+local current_blame_text
+
 local function clear_virtual_text()
     vim.api.nvim_buf_del_extmark(0, NAMESPACE_ID, 1)
 end
@@ -168,6 +171,29 @@ local function get_blame_text(filepath, blame_info, callback)
     end
 end
 
+---Updates `current_blame_text` and sets the virtual text if it should.
+---@param blame_text string
+local function update_blame_text(blame_text)
+    clear_virtual_text()
+
+    current_blame_text = blame_text
+    if not blame_text then return end
+
+    local should_display_virtual_text = vim.g.gitblame_display_virtual_text == 1
+    if should_display_virtual_text then
+        local options = {id = 1, virt_text = {{blame_text, 'gitblame'}}}
+        local user_options = vim.g.gitblame_set_extmark_options or {}
+        if type(user_options) == 'table' then
+            utils.merge_map(user_options, options)
+        elseif user_options then
+            utils.log('gitblame_set_extmark_options should be a table')
+        end
+
+        local line = utils.get_line_number()
+        vim.api.nvim_buf_set_extmark(0, NAMESPACE_ID, line - 1, 0, options)
+    end
+end
+
 local function show_blame_info()
     local filepath = utils.get_filepath()
     local line = utils.get_line_number()
@@ -194,21 +220,7 @@ local function show_blame_info()
     last_position.line = line
 
     local info = get_blame_info(filepath, line)
-    get_blame_text(filepath, info, function(blame_text)
-        clear_virtual_text()
-
-        if blame_text then
-            local options = {id = 1, virt_text = {{blame_text, 'gitblame'}}}
-            local user_options = vim.g.gitblame_set_extmark_options or {}
-            if type(user_options) == 'table' then
-                utils.merge_map(user_options, options)
-            elseif user_options then
-                utils.log('gitblame_set_extmark_options should be a table')
-            end
-
-            vim.api.nvim_buf_set_extmark(0, NAMESPACE_ID, line - 1, 0, options)
-        end
-    end)
+    get_blame_text(filepath, info, update_blame_text)
 end
 
 local function cleanup_file_data()
@@ -269,6 +281,10 @@ local function open_commit_url()
     if sha and sha ~= empty_sha then git.open_commit_in_browser(sha) end
 end
 
+local function get_current_blame_text() return current_blame_text end
+
+local function is_blame_text_available() return current_blame_text ~= nil end
+
 return {
     init = init,
     show_blame_info = show_blame_info,
@@ -279,5 +295,7 @@ return {
     handle_buf_enter = handle_buf_enter,
     handle_text_changed = handle_text_changed,
     handle_insert_leave = handle_insert_leave,
-    open_commit_url = open_commit_url
+    open_commit_url = open_commit_url,
+    get_current_blame_text = get_current_blame_text,
+    is_blame_text_available = is_blame_text_available
 }

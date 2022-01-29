@@ -2,6 +2,7 @@ let g:gitblame_highlight_group = get(g:, 'gitblame_highlight_group', "Comment")
 let g:gitblame_enabled = get(g:, 'gitblame_enabled', 1)
 let g:gitblame_message_template = get(g:, 'gitblame_message_template', '  <author> • <date> • <summary>')
 let g:gitblame_date_format = get(g:, 'gitblame_date_format', '%c')
+let g:gitblame_display_virtual_text = get(g:, 'gitblame_display_virtual_text', 1)
 execute "highlight default link gitblame " .. g:gitblame_highlight_group
 
 function! GitBlameInit()

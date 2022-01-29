@@ -22,9 +22,6 @@ something running on Node.js just for git blame was not the best thing.
 ## Demo
 ![demo](assets/demo.png?raw=true)
 
-## Requirements
-Neovim
-
 ## Configuration
 #### Enabled
 Enables git-blame.nvim on neovim startup.
@@ -101,6 +98,16 @@ let g:gitblame_set_extmark_options = {
 	\ }
 ```
 
+#### Virtual text enabled
+Whether or not blame message should be displayed as virtual text.
+You may want to disable this if you display the blame message in statusline.
+
+Default: `1`
+
+```vim
+let g:gitblame_display_virtual_text = 0
+```
+
 ## Commands
 #### Open the commit URL in browser
 `:GitBlameOpenCommitURL` opens the commit URL of commit under the cursor.
@@ -110,6 +117,32 @@ Tested to work with GitHub and GitLab.
 * `:GitBlameToggle` toggles git blame on/off,
 * `:GitBlameEnable` enables git blame messages,
 * `:GitBlameDisable` disables git blame messages.
+
+## Statusline integration
+The plugin provides you with two functions which you can incorporate into your
+statusline of choice:
+```lua
+-- Lua
+local git_blame = require('gitblame')
+
+git_blame.is_blame_text_available() -- Returns a boolean value indicating whether blame message is available
+git_blame.get_current_blame_text() --  Returns a string with blame message
+```
+
+Here is an example of integrating with [lualine.nvim](https://github.com/nvim-lualine/lualine.nvim):
+```Lua
+-- Lua
+vim.g.gitblame_display_virtual_text = 0 -- Disable virtual text
+local git_blame = require('gitblame')
+
+require('lualine').setup({
+    sections = {
+            lualine_c = {
+                { git_blame.get_current_blame_text, cond = git_blame.is_blame_text_available }
+            }
+    }
+})
+```
 
 # Thanks To
 * [coc-git](https://github.com/neoclide/coc-git) for some parts of code.
