@@ -97,4 +97,13 @@ function M.launch_url(url)
     open_cmd(url)
 end
 
+function M.arr_contains(arr, val)
+    for _, ele in ipairs(arr) do
+        if ele == val then
+            return true
+        end
+    end
+    return false
+end
+
 return M
