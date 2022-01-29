@@ -108,6 +108,16 @@ Default: `1`
 let g:gitblame_display_virtual_text = 0
 ```
 
+#### Ignore by Filetype
+
+A list of filetypes for which gitblame information will not be displayed.
+
+Default: `[]`
+
+```vim
+let g:gitblame_ft_ignore = ['lua', 'c']
+```
+
 ## Commands
 #### Open the commit URL in browser
 `:GitBlameOpenCommitURL` opens the commit URL of commit under the cursor.
