@@ -115,7 +115,7 @@ A list of filetypes for which gitblame information will not be displayed.
 Default: `[]`
 
 ```vim
-let g:gitblame_ft_ignore = ['lua', 'c']
+let g:gitblame_ignored_filetypes = ['lua', 'c']
 ```
 
 ## Commands
