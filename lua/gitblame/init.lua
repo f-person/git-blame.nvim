@@ -101,7 +101,9 @@ local function load_blames(callback)
     if filepath == "" then return end
 
     local filetype = vim.api.nvim_buf_get_option(0, 'ft')
-    if vim.tbl_contains(vim.g.gitblame_ignored_filetypes, filetype) then return end
+    if vim.tbl_contains(vim.g.gitblame_ignored_filetypes, filetype) then
+        return
+    end
 
     git.get_repo_root(function(git_root)
         local command = 'git --no-pager -C ' .. git_root ..
