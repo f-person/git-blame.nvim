@@ -56,9 +56,14 @@ function! GitBlameOpenCommitURL()
     lua require('gitblame').open_commit_url()
 endfunction
 
+function! GitBlameCopySHA()
+    lua require('gitblame').copy_sha_to_clipboard()
+endfunction
+
 :command! -nargs=0 GitBlameToggle call GitBlameToggle()
 :command! -nargs=0 GitBlameEnable call GitBlameEnable()
 :command! -nargs=0 GitBlameDisable call GitBlameDisable()
 :command! -nargs=0 GitBlameOpenCommitURL call GitBlameOpenCommitURL()
+:command! -nargs=0 GitBlameCopySHA call GitBlameCopySHA()
 
 call GitBlameInit()

@@ -276,11 +276,18 @@ local function handle_insert_leave()
     timer:start(50, 0, vim.schedule_wrap(function() handle_text_changed() end))
 end
 
-local function open_commit_url()
+---Returns SHA for the current line.
+---@return string
+local function get_sha()
+
     local filepath = utils.get_filepath()
     local line_number = utils.get_line_number()
     local info = get_blame_info(filepath, line_number)
-    local sha = info.sha
+    return info.sha
+end
+
+local function open_commit_url()
+    local sha = get_sha()
     local empty_sha = '0000000000000000000000000000000000000000'
 
     if sha and sha ~= empty_sha then git.open_commit_in_browser(sha) end
@@ -289,6 +296,8 @@ end
 local function get_current_blame_text() return current_blame_text end
 
 local function is_blame_text_available() return current_blame_text ~= nil end
+
+local function copy_sha_to_clipboard() utils.copy_to_clipboard(get_sha()) end
 
 return {
     init = init,
@@ -302,5 +311,6 @@ return {
     handle_insert_leave = handle_insert_leave,
     open_commit_url = open_commit_url,
     get_current_blame_text = get_current_blame_text,
-    is_blame_text_available = is_blame_text_available
+    is_blame_text_available = is_blame_text_available,
+    copy_sha_to_clipboard = copy_sha_to_clipboard
 }

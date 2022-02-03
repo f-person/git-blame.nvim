@@ -97,4 +97,7 @@ function M.launch_url(url)
     open_cmd(url)
 end
 
+---@param text string
+function M.copy_to_clipboard(text) vim.fn.setreg('+', text) end
+
 return M

@@ -128,6 +128,10 @@ Tested to work with GitHub and GitLab.
 * `:GitBlameEnable` enables git blame messages,
 * `:GitBlameDisable` disables git blame messages.
 
+#### Copy SHA hash
+`:GitBlameCopySHA` copies the SHA hash of current line's commit into
+the system keyboard.
+
 ## Statusline integration
 The plugin provides you with two functions which you can incorporate into your
 statusline of choice:
