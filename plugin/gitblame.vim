@@ -34,14 +34,8 @@ function! GitBlameEnable()
 endfunction
 
 function! GitBlameDisable()
-	if g:gitblame_enabled == 0
-		return
-	endif
-
-	let g:gitblame_enabled = 0
 	autocmd! gitblame
-	lua require('gitblame').clear_virtual_text()
-	lua require('gitblame').clear_files_data()
+	lua require('gitblame').disable()
 endfunction
 
 function! GitBlameToggle()

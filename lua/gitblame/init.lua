@@ -299,6 +299,24 @@ local function is_blame_text_available() return current_blame_text ~= nil end
 
 local function copy_sha_to_clipboard() utils.copy_to_clipboard(get_sha()) end
 
+local function clear_all_extmarks()
+    local buffers = vim.api.nvim_list_bufs()
+
+    for _, buffer_handle in ipairs(buffers) do
+        vim.api.nvim_buf_del_extmark(buffer_handle, NAMESPACE_ID, 1)
+    end
+end
+
+local function disable()
+    if vim.g.gitblame_enabled == 0 then return end
+
+    vim.g.gitblame_enabled = 0
+
+    clear_all_extmarks()
+    clear_files_data()
+    last_position = {}
+end
+
 return {
     init = init,
     show_blame_info = show_blame_info,
@@ -312,5 +330,6 @@ return {
     open_commit_url = open_commit_url,
     get_current_blame_text = get_current_blame_text,
     is_blame_text_available = is_blame_text_available,
-    copy_sha_to_clipboard = copy_sha_to_clipboard
+    copy_sha_to_clipboard = copy_sha_to_clipboard,
+    disable = disable
 }
