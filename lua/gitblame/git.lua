@@ -14,7 +14,24 @@ end
 ---@param remote_url string
 ---@return string
 local function get_commit_url(sha, remote_url)
-    return remote_url .. '/commit/' .. sha
+    local commit_path = '/commit/' .. sha
+
+    local domain, path = string.match(remote_url, ".*git%@(.*)%:(.*)%.git")
+    if domain and path then
+      return 'https://' .. domain .. '/' .. path .. commit_path
+    end
+
+    local url = string.match(remote_url, ".*git%@(.*)%.git")
+    if url then
+      return 'https://' .. url .. commit_path
+    end
+
+    local https_url = string.match(remote_url, "(https%:%/%/.*)%.git")
+    if https_url then
+      return https_url .. commit_path
+    end
+
+    return remote_url .. commit_path
 end
 
 ---@param sha string
