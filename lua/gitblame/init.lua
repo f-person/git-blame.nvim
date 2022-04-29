@@ -133,7 +133,10 @@ end
 
 ---@param filepath string
 ---@param linenumber number
+---@return table|nil
 local function get_blame_info(filepath, linenumber)
+    if not files_data[filepath] then return end
+
     local info
     for _, v in ipairs(files_data[filepath].blames) do
         if linenumber >= v.startline and linenumber <= v.endline then
@@ -277,27 +280,49 @@ local function handle_insert_leave()
 end
 
 ---Returns SHA for the current line.
----@return string
-local function get_sha()
-
+---@param callback fun(sha: string)
+local function get_sha(callback)
     local filepath = utils.get_filepath()
     local line_number = utils.get_line_number()
     local info = get_blame_info(filepath, line_number)
-    return info.sha
+
+    if info then
+        callback(info.sha)
+    else
+        load_blames(function()
+            local new_info = get_blame_info(filepath, line_number)
+
+            callback(new_info.sha)
+        end)
+    end
 end
 
 local function open_commit_url()
-    local sha = get_sha()
-    local empty_sha = '0000000000000000000000000000000000000000'
+    get_sha(function(sha)
+        local empty_sha = '0000000000000000000000000000000000000000'
 
-    if sha and sha ~= empty_sha then git.open_commit_in_browser(sha) end
+        if sha and sha ~= empty_sha then
+            git.open_commit_in_browser(sha)
+        else
+            utils.log('Unable to open commit URL as SHA is empty')
+        end
+    end)
+
 end
 
 local function get_current_blame_text() return current_blame_text end
 
 local function is_blame_text_available() return current_blame_text ~= nil end
 
-local function copy_sha_to_clipboard() utils.copy_to_clipboard(get_sha()) end
+local function copy_sha_to_clipboard()
+    get_sha(function(sha)
+        if sha then
+            utils.copy_to_clipboard(sha)
+        else
+            utils.log('Unable to copy SHA')
+        end
+    end)
+end
 
 local function clear_all_extmarks()
     local buffers = vim.api.nvim_list_bufs()
