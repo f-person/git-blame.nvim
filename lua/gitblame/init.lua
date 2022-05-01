@@ -107,7 +107,7 @@ local function load_blames(callback)
 
     git.get_repo_root(function(git_root)
         local command = 'git --no-pager -C ' .. git_root ..
-                            ' blame -b -p --date relative --contents - ' ..
+                            ' blame -b -p -w --date relative --contents - ' ..
                             filepath
 
         start_job(command, {
