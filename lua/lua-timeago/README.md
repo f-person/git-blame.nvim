@@ -24,7 +24,7 @@ local now = os.time()
 timeago.format(now - (60 * 5)) -- Returns '5 minutes ago'
 
 timeago.set_language('hy')
-timeago.format(now - (60 * 5)) -- Return '5 րոպե առաջ'
+timeago.format(now - (60 * 5)) -- Returns '5 րոպե առաջ'
 ```
 
 ---

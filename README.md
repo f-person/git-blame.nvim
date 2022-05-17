@@ -158,6 +158,25 @@ require('lualine').setup({
 })
 ```
 
+## Changing the timeago-format language
+The plugin uses [lua-timeago](https://github.com/f-person/lua-timeago) for
+displaying commit dates in a relative time ago format. Take a look at the
+[languages](https://github.com/f-person/git-blame.nvim/tree/master/lua/lua-timeago/languages)
+directory for a list of pre-installed languages. If you wish to use a language,
+that's not built into lua-timeago, you can
+[do that](https://github.com/f-person/lua-timeago#language) too; please consider opening a PR to lua-timeago if you do so :)
+
+In order to set a language, call the `set_language` method:
+```lua
+-- Lua
+require('lua-timeago').set_language(require('lua-timeago/languages/hy'))
+```
+
+```vim
+" Vimscript
+:lua require('lua-timeago').set_language(require('lua-timeago/languages/hy'))
+```
+
 # Thanks To
 * [coc-git](https://github.com/neoclide/coc-git) for some parts of code.
 * [blamer.nvim](https://github.com/APZelos/blamer.nvim) for documentation inspiration.
