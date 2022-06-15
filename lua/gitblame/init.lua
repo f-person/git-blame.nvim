@@ -18,14 +18,14 @@ local current_author
 ---@type boolean
 local need_update_after_horizontal_move = false
 
----@type string
-local date_format = vim.g.gitblame_date_format
-
 ---@type boolean
 local date_format_has_relative_time
 
 ---@type string
 local current_blame_text
+
+---@return string
+local function get_date_format() return vim.g.gitblame_date_format end
 
 local function clear_virtual_text()
     vim.api.nvim_buf_del_extmark(0, NAMESPACE_ID, 1)
@@ -123,7 +123,7 @@ end
 ---@param date osdate
 ---@return string
 local function format_date(date)
-    local format = date_format
+    local format = get_date_format()
     if date_format_has_relative_time then
         format = format:gsub("%%r", timeago.format(date))
     end
@@ -257,7 +257,7 @@ local function handle_buf_enter()
 end
 
 local function init()
-    date_format_has_relative_time = date_format:match('%%r') ~= nil
+    date_format_has_relative_time = get_date_format():match('%%r') ~= nil
     vim.schedule(function() find_current_author(show_blame_info) end)
 end
 
