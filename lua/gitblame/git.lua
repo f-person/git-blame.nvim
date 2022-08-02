@@ -6,7 +6,7 @@ function M.check_is_ignored(callback)
     local filepath = vim.api.nvim_buf_get_name(0)
     if filepath == "" then return true end
 
-    utils.start_job('git check-ignore ' .. filepath,
+    utils.start_job('git check-ignore ' .. vim.fn.shellescape(filepath),
                     {on_exit = function(data) callback(data ~= 1) end})
 end
 
@@ -42,8 +42,8 @@ end
 function M.get_remote_url(callback)
     local filepath = utils.get_filepath()
     if not filepath then return end
-    local remote_url_command = 'cd "`dirname \'' .. filepath .. '\'`"' ..
-                                   " && git config --get remote.origin.url"
+    local remote_url_command = 'cd "`dirname ' .. vim.fn.shellescape(filepath) .. '`"' ..
+                                   ' && git config --get remote.origin.url'
 
     utils.start_job(utils.get_posix_shell_command(remote_url_command), {
         on_stdout = function(url)
@@ -60,7 +60,7 @@ end
 function M.get_repo_root(callback)
     local filepath = utils.get_filepath()
     if not filepath then return end
-    local command = 'cd "`dirname \'' .. filepath .. '\'`"' ..
+    local command = 'cd "`dirname ' .. vim.fn.shellescape(filepath) .. '`"' ..
                         ' && git rev-parse --show-toplevel'
 
     utils.start_job(utils.get_posix_shell_command(command),
