@@ -73,7 +73,7 @@ function M.launch_url(url)
     if not open_cmd then
         if package.config:sub(1, 1) == '\\' then
             open_cmd = function(_url)
-                M.start_job(string.format('start "%s"', _url))
+                M.start_job(string.format('rundll32 url.dll,FileProtocolHandler "%s"', _url))
             end
         elseif (io.popen("uname -s"):read '*a'):match 'Darwin' then
             open_cmd = function(_url)
