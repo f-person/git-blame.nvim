@@ -106,9 +106,9 @@ local function load_blames(callback)
     end
 
     git.get_repo_root(function(git_root)
-        local command = 'git --no-pager -C ' .. git_root ..
+        local command = 'git --no-pager -C ' .. vim.fn.shellescape(git_root) ..
                             ' blame -b -p -w --date relative --contents - ' ..
-                            filepath
+                            vim.fn.shellescape(filepath)
 
         start_job(command, {
             input = table.concat(lines, '\n') .. '\n',
