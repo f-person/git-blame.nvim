@@ -12,6 +12,9 @@ local last_position = {}
 ---@type table<string, table>
 local files_data = {}
 
+---@type table<string, boolean>
+local files_data_loading = {}
+
 ---@type string
 local current_author
 
@@ -105,6 +108,10 @@ local function load_blames(callback)
         return
     end
 
+    if files_data_loading[filepath] then return end
+
+    files_data_loading[filepath] = true
+
     git.get_repo_root(function(git_root)
         local command = 'git --no-pager -C ' .. vim.fn.shellescape(git_root) ..
                             ' blame -b -p -w --date relative --contents - ' ..
@@ -115,6 +122,9 @@ local function load_blames(callback)
             on_stdout = function(data)
                 process_blame_output(blames, filepath, data)
                 if callback then callback() end
+            end,
+            on_exit = function()
+                files_data_loading[filepath] = nil
             end
         })
     end)
