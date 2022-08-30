@@ -130,7 +130,7 @@ Tested to work with GitHub and GitLab.
 
 #### Copy SHA hash
 `:GitBlameCopySHA` copies the SHA hash of current line's commit into
-the system keyboard.
+the system's clipboard.
 
 ## Statusline integration
 The plugin provides you with two functions which you can incorporate into your
