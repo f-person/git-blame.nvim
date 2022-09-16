@@ -3,7 +3,7 @@ let g:gitblame_enabled = get(g:, 'gitblame_enabled', 1)
 let g:gitblame_message_template = get(g:, 'gitblame_message_template', '  <author> • <date> • <summary>')
 let g:gitblame_date_format = get(g:, 'gitblame_date_format', '%c')
 let g:gitblame_display_virtual_text = get(g:, 'gitblame_display_virtual_text', 1)
-let g:gitblame_ignored_filetypes = get(g:, 'gitblame_ignored_filetypes', [])
+let g:gitblame_ignored_filetypes = get(g:, 'gitblame_ignored_filetypes', ['nerdtree', 'NvimTree'])
 execute "highlight default link gitblame " .. g:gitblame_highlight_group
 
 function! GitBlameInit()
