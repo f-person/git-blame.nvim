@@ -132,6 +132,10 @@ Tested to work with GitHub and GitLab.
 `:GitBlameCopySHA` copies the SHA hash of current line's commit into
 the system's clipboard.
 
+#### Copy Commit URL
+`:GitBlameCopyCommitURL` copies the commit URL of current line's commit into
+the system's clipboard.
+
 ## Statusline integration
 The plugin provides you with two functions which you can incorporate into your
 statusline of choice:

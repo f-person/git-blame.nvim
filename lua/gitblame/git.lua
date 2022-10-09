@@ -13,7 +13,7 @@ end
 ---@param sha string
 ---@param remote_url string
 ---@return string
-local function get_commit_url(sha, remote_url)
+function M.get_commit_url(sha, remote_url)
     local commit_path = '/commit/' .. sha
 
     local domain, path = string.match(remote_url, ".*git%@(.*)%:(.*)%.git")
@@ -33,7 +33,7 @@ end
 ---@param sha string
 function M.open_commit_in_browser(sha)
     M.get_remote_url(function(remote_url)
-        local commit_url = get_commit_url(sha, remote_url)
+        local commit_url = M.get_commit_url(sha, remote_url)
         utils.launch_url(commit_url)
     end)
 end
