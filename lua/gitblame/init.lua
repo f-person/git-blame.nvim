@@ -337,6 +337,19 @@ local function copy_sha_to_clipboard()
     end)
 end
 
+local function copy_commit_url_to_clipboard()
+    get_sha(function(sha)
+        if sha then
+            git.get_remote_url(function(remote_url)
+              local commit_url = git.get_commit_url(sha, remote_url)
+              utils.copy_to_clipboard(commit_url)
+            end)
+        else
+            utils.log('Unable to copy SHA')
+        end
+    end)
+end
+
 local function clear_all_extmarks()
     local buffers = vim.api.nvim_list_bufs()
 
@@ -369,5 +382,6 @@ return {
     get_current_blame_text = get_current_blame_text,
     is_blame_text_available = is_blame_text_available,
     copy_sha_to_clipboard = copy_sha_to_clipboard,
+    copy_commit_url_to_clipboard = copy_commit_url_to_clipboard,
     disable = disable
 }
