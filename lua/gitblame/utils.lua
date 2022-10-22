@@ -75,7 +75,7 @@ function M.launch_url(url)
             open_cmd = function(_url)
                 M.start_job(string.format('rundll32 url.dll,FileProtocolHandler "%s"', _url))
             end
-        elseif (io.popen("uname -s"):read '*a'):match 'Darwin' then
+        elseif (io.popen("uname -s"):read '*a'):match 'Darwin\n' then
             open_cmd = function(_url)
                 M.start_job(string.format('open "%s"', _url))
             end
