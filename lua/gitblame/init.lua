@@ -30,6 +30,11 @@ local current_blame_text
 ---@return string
 local function get_date_format() return vim.g.gitblame_date_format end
 
+--@return string
+local function get_message_when_not_committed()
+  return vim.g.gitblame_message_when_not_committed
+end
+
 local function clear_virtual_text()
     vim.api.nvim_buf_del_extmark(0, NAMESPACE_ID, 1)
 end
@@ -168,7 +173,7 @@ local function get_blame_text(filepath, blame_info, callback)
                                      info.committer and info.committer_date and
                                      info.author ~= 'Not Committed Yet'
 
-    local notCommitedBlameText = '  Not Committed Yet'
+    local notCommitedBlameText = get_message_when_not_committed()
     if isBlameInfoAvailable then
         local blame_text = vim.g.gitblame_message_template
         blame_text = blame_text:gsub('<author>',

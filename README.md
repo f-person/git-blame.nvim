@@ -44,6 +44,16 @@ Available options: `<author>`, `<committer>`, `<date>`, `<committer-date>`, `<su
 let g:gitblame_message_template = '<summary> • <date> • <author>'
 ```
 
+#### Message when not committed yet
+The blame message that will be shown when the current modification 
+hasn't been committed yet.
+
+Default: `'  Not Committed Yet'`
+
+```vim
+let g:gitblame_message_when_not_committed = 'Oh please, commit this !'
+```
+
 #### Date format
 The [format](https://www.lua.org/pil/22.1.html) of the date fields.
 
