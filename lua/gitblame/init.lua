@@ -21,6 +21,7 @@ local current_author
 ---@type boolean
 local need_update_after_horizontal_move = false
 
+--- This shouldn't be used directly. Use `get_date_format` instead.
 ---@type boolean
 local date_format_has_relative_time
 
@@ -30,9 +31,9 @@ local current_blame_text
 ---@return string
 local function get_date_format() return vim.g.gitblame_date_format end
 
---@return string
+---@return string
 local function get_message_when_not_committed()
-  return vim.g.gitblame_message_when_not_committed
+    return vim.g.gitblame_message_when_not_committed
 end
 
 local function clear_virtual_text()
@@ -131,18 +132,26 @@ local function load_blames(callback)
                 process_blame_output(blames, filepath, data)
                 if callback then callback() end
             end,
-            on_exit = function()
-                files_data_loading[filepath] = nil
-            end
+            on_exit = function() files_data_loading[filepath] = nil end
         })
     end)
+end
+
+--- Checks if the date format contains a relative time placeholder.
+---@return boolean
+local function check_uses_relative_date()
+    if date_format_has_relative_time then
+        return date_format_has_relative_time
+    else
+        date_format_has_relative_time = get_date_format():match('%%r') ~= nil
+    end
 end
 
 ---@param date osdate
 ---@return string
 local function format_date(date)
     local format = get_date_format()
-    if date_format_has_relative_time then
+    if check_uses_relative_date() then
         format = format:gsub("%%r", timeago.format(date))
     end
 
@@ -275,7 +284,6 @@ local function handle_buf_enter()
 end
 
 local function init()
-    date_format_has_relative_time = get_date_format():match('%%r') ~= nil
     vim.schedule(function() find_current_author(show_blame_info) end)
 end
 
@@ -346,8 +354,8 @@ local function copy_commit_url_to_clipboard()
     get_sha(function(sha)
         if sha then
             git.get_remote_url(function(remote_url)
-              local commit_url = git.get_commit_url(sha, remote_url)
-              utils.copy_to_clipboard(commit_url)
+                local commit_url = git.get_commit_url(sha, remote_url)
+                utils.copy_to_clipboard(commit_url)
             end)
         else
             utils.log('Unable to copy SHA')
