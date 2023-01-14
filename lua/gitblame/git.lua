@@ -7,7 +7,7 @@ function M.check_is_ignored(callback)
     if filepath == "" then return true end
 
     utils.start_job('git check-ignore ' .. vim.fn.shellescape(filepath),
-                    {on_exit = function(data) callback(data ~= 1) end})
+                    {on_exit = function(code) callback(code ~= 1) end})
 end
 
 ---@param sha string
@@ -49,13 +49,13 @@ function M.get_remote_url(callback)
             if url and url[1] then
                 callback(url[1])
             else
-                callback(nil)
+                callback('')
             end
         end
     })
 end
 
----@param callback fun()
+---@param callback fun(repo_root: string)
 function M.get_repo_root(callback)
     if not utils.get_filepath() then return end
     local command = 'cd ' .. vim.fn.shellescape(vim.fn.expand('%:p:h')) ..
