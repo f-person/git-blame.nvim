@@ -9,7 +9,11 @@ local NAMESPACE_ID = vim.api.nvim_create_namespace('git-blame-virtual-text')
 ---@type table<string, string>
 local last_position = {}
 
----@type table<string, table>
+---@class GitInfo
+---@field blames table<string, BlameInfo>
+---@field git_repo_path string
+
+---@type table<string, GitInfo>
 local files_data = {}
 
 ---@type table<string, boolean>
@@ -45,6 +49,7 @@ end
 ---@param lines string[]
 local function process_blame_output(blames, filepath, lines)
     if not files_data[filepath] then files_data[filepath] = {} end
+	---@type BlameInfo
     local info
     for _, line in ipairs(lines) do
         local message = line:match('^([A-Za-z0-9]+) ([0-9]+) ([0-9]+) ([0-9]+)')
@@ -56,7 +61,7 @@ local function process_blame_output(blames, filepath, lines)
 
             local startline = tonumber(parts[3])
             info = {
-                startline = startline,
+                startline = startline or 0,
                 sha = parts[1],
                 endline = startline + tonumber(parts[4]) - 1
             }
@@ -145,6 +150,7 @@ local function check_uses_relative_date()
     else
         date_format_has_relative_time = get_date_format():match('%%r') ~= nil
     end
+	return false
 end
 
 ---@param date osdate
@@ -155,16 +161,19 @@ local function format_date(date)
         format = format:gsub("%%r", timeago.format(date))
     end
 
+	---@diagnostic disable-next-line: param-type-mismatch, return-type-mismatch
     return os.date(format, date)
 end
 
----@param filepath string
+---@param filepath string?
 ---@param linenumber number
----@return table|nil
+---@return BlameInfo|nil
 local function get_blame_info(filepath, linenumber)
-    if not files_data[filepath] then return end
+    if not filepath and not files_data[filepath] then return nil end
 
+	---@type BlameInfo
     local info
+	---@diagnostic disable-next-line: no-unknown
     for _, v in ipairs(files_data[filepath].blames) do
         if linenumber >= v.startline and linenumber <= v.endline then
             info = v
@@ -174,16 +183,26 @@ local function get_blame_info(filepath, linenumber)
     return info
 end
 
----@param blame_info table
----@param callback fun(blame_text: string)
+---@class BlameInfo
+---@field author string
+---@field committer string
+---@field date osdate
+---@field committer_date osdate
+---@field summary string
+---@field sha string
+---@field startline number
+---@field endline number
+
+---@param blame_info BlameInfo|nil
+---@param callback fun(blame_text: string|nil)
 local function get_blame_text(filepath, blame_info, callback)
     local info = blame_info
-    local isBlameInfoAvailable = info and info.author and info.date and
-                                     info.committer and info.committer_date and
-                                     info.author ~= 'Not Committed Yet'
+	local not_committed_blame_text = get_message_when_not_committed()
 
-    local notCommitedBlameText = get_message_when_not_committed()
-    if isBlameInfoAvailable then
+    if info and info.author and info.date and
+	info.committer and info.committer_date and
+    info.author ~= 'Not Committed Yet' then
+		---@type string
         local blame_text = vim.g.gitblame_message_template
         blame_text = blame_text:gsub('<author>',
                                      info.author == current_author and 'You' or
@@ -198,21 +217,21 @@ local function get_blame_text(filepath, blame_info, callback)
         blame_text = blame_text:gsub('<sha>', string.sub(info.sha, 1, 7))
         callback(blame_text)
     elseif #files_data[filepath].blames > 0 then
-        callback(notCommitedBlameText)
+        callback(not_committed_blame_text)
     else
         git.check_is_ignored(function(is_ignored)
-            callback(not is_ignored and notCommitedBlameText or nil)
+            callback(not is_ignored and not_committed_blame_text or nil)
         end)
     end
 end
 
 ---Updates `current_blame_text` and sets the virtual text if it should.
----@param blame_text string
+---@param blame_text string|nil
 local function update_blame_text(blame_text)
     clear_virtual_text()
 
+	if not blame_text then return end
     current_blame_text = blame_text
-    if not blame_text then return end
 
     local should_display_virtual_text = vim.g.gitblame_display_virtual_text == 1
     if should_display_virtual_text then
@@ -266,6 +285,7 @@ end
 ---@param callback fun(current_author: string)
 local function find_current_author(callback)
     start_job('git config --get user.name', {
+		---@param data string[]
         on_stdout = function(data)
             current_author = data[1]
             if callback then callback(current_author) end
@@ -318,7 +338,7 @@ local function get_sha(callback)
         load_blames(function()
             local new_info = get_blame_info(filepath, line_number)
 
-            callback(new_info.sha)
+            callback(new_info and new_info.sha or '')
         end)
     end
 end
