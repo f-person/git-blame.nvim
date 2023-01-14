@@ -1,10 +1,10 @@
-local git = require('gitblame.git')
-local utils = require('gitblame.utils')
+local git = require("gitblame.git")
+local utils = require("gitblame.utils")
 local start_job = utils.start_job
-local timeago = require('lua-timeago')
+local timeago = require("lua-timeago")
 
 ---@type integer
-local NAMESPACE_ID = vim.api.nvim_create_namespace('git-blame-virtual-text')
+local NAMESPACE_ID = vim.api.nvim_create_namespace("git-blame-virtual-text")
 
 ---@type table<string, string>
 local last_position = {}
@@ -33,7 +33,9 @@ local date_format_has_relative_time
 local current_blame_text
 
 ---@return string
-local function get_date_format() return vim.g.gitblame_date_format end
+local function get_date_format()
+    return vim.g.gitblame_date_format
+end
 
 ---@return string
 local function get_message_when_not_committed()
@@ -48,11 +50,13 @@ end
 ---@param filepath string
 ---@param lines string[]
 local function process_blame_output(blames, filepath, lines)
-    if not files_data[filepath] then files_data[filepath] = {} end
-	---@type BlameInfo
+    if not files_data[filepath] then
+        files_data[filepath] = {}
+    end
+    ---@type BlameInfo
     local info
     for _, line in ipairs(lines) do
-        local message = line:match('^([A-Za-z0-9]+) ([0-9]+) ([0-9]+) ([0-9]+)')
+        local message = line:match("^([A-Za-z0-9]+) ([0-9]+) ([0-9]+) ([0-9]+)")
         if message then
             local parts = {}
             for part in line:gmatch("%w+") do
@@ -63,10 +67,10 @@ local function process_blame_output(blames, filepath, lines)
             info = {
                 startline = startline or 0,
                 sha = parts[1],
-                endline = startline + tonumber(parts[4]) - 1
+                endline = startline + tonumber(parts[4]) - 1,
             }
 
-            if parts[1]:match('^0+$') == nil then
+            if parts[1]:match("^0+$") == nil then
                 for _, found_info in ipairs(blames) do
                     if found_info.sha == parts[1] then
                         info.author = found_info.author
@@ -81,26 +85,28 @@ local function process_blame_output(blames, filepath, lines)
 
             table.insert(blames, info)
         elseif info then
-            if line:match('^author ') then
-                local author = line:gsub('^author ', '')
+            if line:match("^author ") then
+                local author = line:gsub("^author ", "")
                 info.author = author
-            elseif line:match('^author%-time ') then
-                local text = line:gsub('^author%-time ', '')
+            elseif line:match("^author%-time ") then
+                local text = line:gsub("^author%-time ", "")
                 info.date = text
-            elseif line:match('^committer ') then
-                local committer = line:gsub('^committer ', '')
+            elseif line:match("^committer ") then
+                local committer = line:gsub("^committer ", "")
                 info.committer = committer
-            elseif line:match('^committer%-time ') then
-                local text = line:gsub('^committer%-time ', '')
+            elseif line:match("^committer%-time ") then
+                local text = line:gsub("^committer%-time ", "")
                 info.committer_date = text
-            elseif line:match('^summary ') then
-                local text = line:gsub('^summary ', '')
+            elseif line:match("^summary ") then
+                local text = line:gsub("^summary ", "")
                 info.summary = text
             end
         end
     end
 
-    if not files_data[filepath] then files_data[filepath] = {} end
+    if not files_data[filepath] then
+        files_data[filepath] = {}
+    end
     files_data[filepath].blames = blames
 end
 
@@ -109,35 +115,48 @@ local function load_blames(callback)
     local blames = {}
 
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-    if #lines == 0 then return end
+    if #lines == 0 then
+        return
+    end
 
     local filepath = vim.api.nvim_buf_get_name(0)
-    if filepath == "" then return end
+    if filepath == "" then
+        return
+    end
 
-    local buftype = vim.api.nvim_buf_get_option(0, 'bt')
-    if buftype ~= '' then return end
+    local buftype = vim.api.nvim_buf_get_option(0, "bt")
+    if buftype ~= "" then
+        return
+    end
 
-    local filetype = vim.api.nvim_buf_get_option(0, 'ft')
+    local filetype = vim.api.nvim_buf_get_option(0, "ft")
     if vim.tbl_contains(vim.g.gitblame_ignored_filetypes, filetype) then
         return
     end
 
-    if files_data_loading[filepath] then return end
+    if files_data_loading[filepath] then
+        return
+    end
 
     files_data_loading[filepath] = true
 
     git.get_repo_root(function(git_root)
-        local command = 'git --no-pager -C ' .. vim.fn.shellescape(git_root) ..
-                            ' blame -b -p -w --date relative --contents - ' ..
-                            vim.fn.shellescape(filepath)
+        local command = "git --no-pager -C "
+            .. vim.fn.shellescape(git_root)
+            .. " blame -b -p -w --date relative --contents - "
+            .. vim.fn.shellescape(filepath)
 
         start_job(command, {
-            input = table.concat(lines, '\n') .. '\n',
+            input = table.concat(lines, "\n") .. "\n",
             on_stdout = function(data)
                 process_blame_output(blames, filepath, data)
-                if callback then callback() end
+                if callback then
+                    callback()
+                end
             end,
-            on_exit = function() files_data_loading[filepath] = nil end
+            on_exit = function()
+                files_data_loading[filepath] = nil
+            end,
         })
     end)
 end
@@ -148,9 +167,9 @@ local function check_uses_relative_date()
     if date_format_has_relative_time then
         return date_format_has_relative_time
     else
-        date_format_has_relative_time = get_date_format():match('%%r') ~= nil
+        date_format_has_relative_time = get_date_format():match("%%r") ~= nil
     end
-	return false
+    return false
 end
 
 ---@param date osdate
@@ -161,7 +180,7 @@ local function format_date(date)
         format = format:gsub("%%r", timeago.format(date))
     end
 
-	---@diagnostic disable-next-line: param-type-mismatch, return-type-mismatch
+    ---@diagnostic disable-next-line: param-type-mismatch, return-type-mismatch
     return os.date(format, date)
 end
 
@@ -169,11 +188,13 @@ end
 ---@param linenumber number
 ---@return BlameInfo|nil
 local function get_blame_info(filepath, linenumber)
-    if not filepath and not files_data[filepath] then return nil end
+    if not filepath and not files_data[filepath] then
+        return nil
+    end
 
-	---@type BlameInfo
+    ---@type BlameInfo
     local info
-	---@diagnostic disable-next-line: no-unknown
+    ---@diagnostic disable-next-line: no-unknown
     for _, v in ipairs(files_data[filepath].blames) do
         if linenumber >= v.startline and linenumber <= v.endline then
             info = v
@@ -197,24 +218,24 @@ end
 ---@param callback fun(blame_text: string|nil)
 local function get_blame_text(filepath, blame_info, callback)
     local info = blame_info
-	local not_committed_blame_text = get_message_when_not_committed()
+    local not_committed_blame_text = get_message_when_not_committed()
 
-    if info and info.author and info.date and
-	info.committer and info.committer_date and
-    info.author ~= 'Not Committed Yet' then
-		---@type string
+    if
+        info
+        and info.author
+        and info.date
+        and info.committer
+        and info.committer_date
+        and info.author ~= "Not Committed Yet"
+    then
+        ---@type string
         local blame_text = vim.g.gitblame_message_template
-        blame_text = blame_text:gsub('<author>',
-                                     info.author == current_author and 'You' or
-                                         info.author)
-        blame_text = blame_text:gsub('<committer>', info.committer ==
-                                         current_author and 'You' or
-                                         info.committer)
-        blame_text = blame_text:gsub('<committer%-date>',
-                                     format_date(info.committer_date))
-        blame_text = blame_text:gsub('<date>', format_date(info.date))
-        blame_text = blame_text:gsub('<summary>', info.summary)
-        blame_text = blame_text:gsub('<sha>', string.sub(info.sha, 1, 7))
+        blame_text = blame_text:gsub("<author>", info.author == current_author and "You" or info.author)
+        blame_text = blame_text:gsub("<committer>", info.committer == current_author and "You" or info.committer)
+        blame_text = blame_text:gsub("<committer%-date>", format_date(info.committer_date))
+        blame_text = blame_text:gsub("<date>", format_date(info.date))
+        blame_text = blame_text:gsub("<summary>", info.summary)
+        blame_text = blame_text:gsub("<sha>", string.sub(info.sha, 1, 7))
         callback(blame_text)
     elseif #files_data[filepath].blames > 0 then
         callback(not_committed_blame_text)
@@ -230,17 +251,19 @@ end
 local function update_blame_text(blame_text)
     clear_virtual_text()
 
-	if not blame_text then return end
+    if not blame_text then
+        return
+    end
     current_blame_text = blame_text
 
     local should_display_virtual_text = vim.g.gitblame_display_virtual_text == 1
     if should_display_virtual_text then
-        local options = {id = 1, virt_text = {{blame_text, 'gitblame'}}}
+        local options = { id = 1, virt_text = { { blame_text, "gitblame" } } }
         local user_options = vim.g.gitblame_set_extmark_options or {}
-        if type(user_options) == 'table' then
+        if type(user_options) == "table" then
             utils.merge_map(user_options, options)
         elseif user_options then
-            utils.log('gitblame_set_extmark_options should be a table')
+            utils.log("gitblame_set_extmark_options should be a table")
         end
 
         local line = utils.get_line_number()
@@ -264,7 +287,9 @@ local function show_blame_info()
         load_blames(show_blame_info)
         return
     end
-    if files_data[filepath].git_repo_path == "" then return end
+    if files_data[filepath].git_repo_path == "" then
+        return
+    end
     if not files_data[filepath].blames then
         load_blames(show_blame_info)
         return
@@ -284,32 +309,44 @@ end
 
 ---@param callback fun(current_author: string)
 local function find_current_author(callback)
-    start_job('git config --get user.name', {
-		---@param data string[]
+    start_job("git config --get user.name", {
+        ---@param data string[]
         on_stdout = function(data)
             current_author = data[1]
-            if callback then callback(current_author) end
-        end
+            if callback then
+                callback(current_author)
+            end
+        end,
     })
 end
 
-local function clear_files_data() files_data = {} end
+local function clear_files_data()
+    files_data = {}
+end
 
 local function handle_buf_enter()
     git.get_repo_root(function(git_repo_path)
-        if git_repo_path == "" then return end
+        if git_repo_path == "" then
+            return
+        end
 
-        vim.schedule(function() show_blame_info() end)
+        vim.schedule(function()
+            show_blame_info()
+        end)
     end)
 end
 
 local function init()
-    vim.schedule(function() find_current_author(show_blame_info) end)
+    vim.schedule(function()
+        find_current_author(show_blame_info)
+    end)
 end
 
 local function handle_text_changed()
     local filepath = utils.get_filepath()
-    if not filepath then return end
+    if not filepath then
+        return
+    end
 
     local line = utils.get_line_number()
 
@@ -322,7 +359,13 @@ end
 
 local function handle_insert_leave()
     local timer = vim.loop.new_timer()
-    timer:start(50, 0, vim.schedule_wrap(function() handle_text_changed() end))
+    timer:start(
+        50,
+        0,
+        vim.schedule_wrap(function()
+            handle_text_changed()
+        end)
+    )
 end
 
 ---Returns SHA for the current line.
@@ -338,34 +381,37 @@ local function get_sha(callback)
         load_blames(function()
             local new_info = get_blame_info(filepath, line_number)
 
-            callback(new_info and new_info.sha or '')
+            callback(new_info and new_info.sha or "")
         end)
     end
 end
 
 local function open_commit_url()
     get_sha(function(sha)
-        local empty_sha = '0000000000000000000000000000000000000000'
+        local empty_sha = "0000000000000000000000000000000000000000"
 
         if sha and sha ~= empty_sha then
             git.open_commit_in_browser(sha)
         else
-            utils.log('Unable to open commit URL as SHA is empty')
+            utils.log("Unable to open commit URL as SHA is empty")
         end
     end)
-
 end
 
-local function get_current_blame_text() return current_blame_text end
+local function get_current_blame_text()
+    return current_blame_text
+end
 
-local function is_blame_text_available() return current_blame_text ~= nil end
+local function is_blame_text_available()
+    return current_blame_text ~= nil
+end
 
 local function copy_sha_to_clipboard()
     get_sha(function(sha)
         if sha then
             utils.copy_to_clipboard(sha)
         else
-            utils.log('Unable to copy SHA')
+            utils.log("Unable to copy SHA")
         end
     end)
 end
@@ -378,7 +424,7 @@ local function copy_commit_url_to_clipboard()
                 utils.copy_to_clipboard(commit_url)
             end)
         else
-            utils.log('Unable to copy SHA')
+            utils.log("Unable to copy SHA")
         end
     end)
 end
@@ -392,7 +438,9 @@ local function clear_all_extmarks()
 end
 
 local function disable()
-    if vim.g.gitblame_enabled == 0 then return end
+    if vim.g.gitblame_enabled == 0 then
+        return
+    end
 
     vim.g.gitblame_enabled = 0
 
@@ -416,5 +464,5 @@ return {
     is_blame_text_available = is_blame_text_available,
     copy_sha_to_clipboard = copy_sha_to_clipboard,
     copy_commit_url_to_clipboard = copy_commit_url_to_clipboard,
-    disable = disable
+    disable = disable,
 }
