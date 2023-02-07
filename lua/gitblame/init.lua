@@ -188,7 +188,7 @@ end
 ---@param linenumber number
 ---@return BlameInfo|nil
 local function get_blame_info(filepath, linenumber)
-    if not filepath and not files_data[filepath] then
+    if not filepath or not files_data[filepath] then
         return nil
     end
 
