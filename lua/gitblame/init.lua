@@ -234,7 +234,10 @@ local function get_blame_text(filepath, blame_info, callback)
         blame_text = blame_text:gsub("<committer>", info.committer == current_author and "You" or info.committer)
         blame_text = blame_text:gsub("<committer%-date>", format_date(info.committer_date))
         blame_text = blame_text:gsub("<date>", format_date(info.date))
-        blame_text = blame_text:gsub("<summary>", info.summary)
+
+        local summary_escaped = info.summary:gsub("%%", "%%%%")
+        blame_text = blame_text:gsub("<summary>", summary_escaped)
+
         blame_text = blame_text:gsub("<sha>", string.sub(info.sha, 1, 7))
         callback(blame_text)
     elseif #files_data[filepath].blames > 0 then
