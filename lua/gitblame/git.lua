@@ -42,7 +42,6 @@ end
 ---@param line_number number?
 ---@return string
 function M.get_file_url(remote_url, branch,filepath, line_number)
-  -- https://github.com/moliva/git-utils/blob/master/scripts/build.sh
     local file_path = "/blob/" .. branch .. "/" .. filepath
 
     local repo_url = M.get_repo_url(remote_url)
