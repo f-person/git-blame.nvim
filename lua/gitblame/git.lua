@@ -41,7 +41,25 @@ end
 ---@param filepath string
 ---@param line_number number?
 ---@return string
-function M.get_file_url(remote_url, branch,filepath, line_number)
+function M.get_file_url(filepath, line_number, callback)
+    M.get_repo_root(function (root)
+      local relative_filepath = string.sub(filepath, #root + 2)
+
+      M.get_current_branch(function(branch)
+        M.get_remote_url(function(remote_url)
+          local url = M._get_file_url(remote_url, branch, relative_filepath, line_number)
+          callback(url)
+        end)
+      end)
+    end)
+end
+
+---@param remote_url string
+---@param branch string
+---@param filepath string
+---@param line_number number?
+---@return string
+function M._get_file_url(remote_url, branch, filepath, line_number)
     local file_path = "/blob/" .. branch .. "/" .. filepath
 
     local repo_url = M.get_repo_url(remote_url)
@@ -66,15 +84,8 @@ end
 ---@param filepath string
 ---@param line_number number?
 function M.open_file_in_browser(filepath, line_number)
-    M.get_repo_root(function (root)
-      local relative_filepath = string.sub(filepath, #root + 2)
-
-      M.get_current_branch(function(branch)
-        M.get_remote_url(function(remote_url)
-          local url = M.get_file_url(remote_url, branch, relative_filepath, line_number)
-          utils.launch_url(url)
-        end)
-      end)
+    M.get_file_url(filepath, line_number, function(url)
+        utils.launch_url(url)
     end)
 end
 

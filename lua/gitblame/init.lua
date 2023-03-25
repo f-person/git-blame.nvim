@@ -430,6 +430,19 @@ local function copy_sha_to_clipboard()
     end)
 end
 
+local function copy_file_url_to_clipboard()
+    local filepath = utils.get_filepath()
+    if (filepath == nil) then
+      return ""
+    end
+
+    local line_number = utils.get_line_number()
+
+    git.get_file_url(filepath, line_number, function(url)
+        utils.copy_to_clipboard(url)
+    end)
+end
+
 local function copy_commit_url_to_clipboard()
     get_sha(function(sha)
         if sha then
@@ -479,5 +492,6 @@ return {
     is_blame_text_available = is_blame_text_available,
     copy_sha_to_clipboard = copy_sha_to_clipboard,
     copy_commit_url_to_clipboard = copy_commit_url_to_clipboard,
+    copy_file_url_to_clipboard = copy_file_url_to_clipboard,
     disable = disable,
 }
