@@ -404,7 +404,7 @@ end
 local function open_file_url()
     local filepath = utils.get_filepath()
     if (filepath == nil) then
-      return ""
+      return
     end
 
     local line_number = utils.get_line_number()
@@ -433,7 +433,7 @@ end
 local function copy_file_url_to_clipboard()
     local filepath = utils.get_filepath()
     if (filepath == nil) then
-      return ""
+      return
     end
 
     local line_number = utils.get_line_number()

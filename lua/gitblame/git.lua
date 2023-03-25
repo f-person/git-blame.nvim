@@ -17,7 +17,7 @@ end
 
 ---@param remote_url string
 ---@return string
-function M.get_repo_url(remote_url)
+local function get_repo_url(remote_url)
     local domain, path = string.match(remote_url, ".*git%@(.*)%:(.*)%.git")
     if domain and path then
         return "https://" .. domain .. "/" .. path
@@ -41,34 +41,47 @@ end
 ---@param filepath string
 ---@param line_number number?
 ---@return string
-function M.get_file_url(filepath, line_number, callback)
-    M.get_repo_root(function (root)
-      local relative_filepath = string.sub(filepath, #root + 2)
-
-      M.get_current_branch(function(branch)
-        M.get_remote_url(function(remote_url)
-          local url = M._get_file_url(remote_url, branch, relative_filepath, line_number)
-          callback(url)
-        end)
-      end)
-    end)
-end
-
----@param remote_url string
----@param branch string
----@param filepath string
----@param line_number number?
----@return string
-function M._get_file_url(remote_url, branch, filepath, line_number)
+local function get_file_url(remote_url, branch, filepath, line_number)
     local file_path = "/blob/" .. branch .. "/" .. filepath
 
-    local repo_url = M.get_repo_url(remote_url)
+    local repo_url = get_repo_url(remote_url)
 
-    if (line_number == nil) then
-      return repo_url .. file_path
+    if line_number == nil then
+        return repo_url .. file_path
     else
-      return repo_url .. file_path .. '#L' .. line_number
+        return repo_url .. file_path .. "#L" .. line_number
     end
+end
+
+---@param callback fun(branch_name: string)
+local function get_current_branch(callback)
+    local command = "git branch --show-current"
+
+    utils.start_job(command, {
+        on_stdout = function(url)
+            if url and url[1] then
+                callback(url[1])
+            else
+                callback("")
+            end
+        end,
+    })
+end
+
+---@param filepath string
+---@param line_number number?
+---@param callback fun(string)
+function M.get_file_url(filepath, line_number, callback)
+    M.get_repo_root(function(root)
+        local relative_filepath = string.sub(filepath, #root + 2)
+
+        get_current_branch(function(branch)
+            M.get_remote_url(function(remote_url)
+                local url = get_file_url(remote_url, branch, relative_filepath, line_number)
+                callback(url)
+            end)
+        end)
+    end)
 end
 
 ---@param sha string
@@ -77,7 +90,7 @@ end
 function M.get_commit_url(sha, remote_url)
     local commit_path = "/commit/" .. sha
 
-    local repo_url = M.get_repo_url(remote_url)
+    local repo_url = get_repo_url(remote_url)
     return repo_url .. commit_path
 end
 
@@ -107,20 +120,6 @@ function M.get_remote_url(callback)
         .. " && git config --get remote.origin.url"
 
     utils.start_job(remote_url_command, {
-        on_stdout = function(url)
-            if url and url[1] then
-                callback(url[1])
-            else
-                callback("")
-            end
-        end,
-    })
-end
-
-function M.get_current_branch(callback)
-    local command = "git branch --show-current"
-
-    utils.start_job(command, {
         on_stdout = function(url)
             if url and url[1] then
                 callback(url[1])
