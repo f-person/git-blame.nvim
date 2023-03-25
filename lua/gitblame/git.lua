@@ -15,28 +15,68 @@ function M.check_is_ignored(callback)
     })
 end
 
+---@param remote_url string
+---@return string
+function M.get_repo_url(remote_url)
+    local domain, path = string.match(remote_url, ".*git%@(.*)%:(.*)%.git")
+    if domain and path then
+        return "https://" .. domain .. "/" .. path
+    end
+
+    local url = string.match(remote_url, ".*git%@(.*)%.git")
+    if url then
+        return "https://" .. url
+    end
+
+    local https_url = string.match(remote_url, "(https%:%/%/.*)%.git")
+    if https_url then
+        return https_url
+    end
+
+    return remote_url
+end
+
+---@param remote_url string
+---@param branch string
+---@param filepath string
+---@param line_number number?
+---@return string
+function M.get_file_url(remote_url, branch,filepath, line_number)
+  -- https://github.com/moliva/git-utils/blob/master/scripts/build.sh
+    local file_path = "/blob/" .. branch .. "/" .. filepath
+
+    local repo_url = M.get_repo_url(remote_url)
+
+    if (line_number == nil) then
+      return repo_url .. file_path
+    else
+      return repo_url .. file_path .. '#L' .. line_number
+    end
+end
+
 ---@param sha string
 ---@param remote_url string
 ---@return string
 function M.get_commit_url(sha, remote_url)
     local commit_path = "/commit/" .. sha
 
-    local domain, path = string.match(remote_url, ".*git%@(.*)%:(.*)%.git")
-    if domain and path then
-        return "https://" .. domain .. "/" .. path .. commit_path
-    end
+    local repo_url = M.get_repo_url(remote_url)
+    return repo_url .. commit_path
+end
 
-    local url = string.match(remote_url, ".*git%@(.*)%.git")
-    if url then
-        return "https://" .. url .. commit_path
-    end
+---@param filepath string
+---@param line_number number?
+function M.open_file_in_browser(filepath, line_number)
+    M.get_repo_root(function (root)
+      local relative_filepath = string.sub(filepath, #root + 2)
 
-    local https_url = string.match(remote_url, "(https%:%/%/.*)%.git")
-    if https_url then
-        return https_url .. commit_path
-    end
-
-    return remote_url .. commit_path
+      M.get_current_branch(function(branch)
+        M.get_remote_url(function(remote_url)
+          local url = M.get_file_url(remote_url, branch, relative_filepath, line_number)
+          utils.launch_url(url)
+        end)
+      end)
+    end)
 end
 
 ---@param sha string
@@ -57,6 +97,20 @@ function M.get_remote_url(callback)
         .. " && git config --get remote.origin.url"
 
     utils.start_job(remote_url_command, {
+        on_stdout = function(url)
+            if url and url[1] then
+                callback(url[1])
+            else
+                callback("")
+            end
+        end,
+    })
+end
+
+function M.get_current_branch(callback)
+    local command = "git branch --show-current"
+
+    utils.start_job(command, {
         on_stdout = function(url)
             if url and url[1] then
                 callback(url[1])

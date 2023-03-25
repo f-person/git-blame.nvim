@@ -401,6 +401,17 @@ local function open_commit_url()
     end)
 end
 
+local function open_file_url()
+    local filepath = utils.get_filepath()
+    if (filepath == nil) then
+      return ""
+    end
+
+    local line_number = utils.get_line_number()
+
+    git.open_file_in_browser(filepath, line_number)
+end
+
 local function get_current_blame_text()
     return current_blame_text
 end
@@ -463,6 +474,7 @@ return {
     handle_text_changed = handle_text_changed,
     handle_insert_leave = handle_insert_leave,
     open_commit_url = open_commit_url,
+    open_file_url = open_file_url,
     get_current_blame_text = get_current_blame_text,
     is_blame_text_available = is_blame_text_available,
     copy_sha_to_clipboard = copy_sha_to_clipboard,
