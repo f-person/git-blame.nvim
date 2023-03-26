@@ -165,7 +165,17 @@ the system's clipboard.
 ### Copy Commit URL
 
 `:GitBlameCopyCommitURL` copies the commit URL of current line's commit into
-the system's clipboard.
+the system clipboard.
+
+### Open file URL in browser
+
+`:GitBlameOpenFileURL` opens the file (with a mark set on the current line) in
+the browser.
+
+### Copy file URL
+
+`:GitBlameCopyFileURL` copies the file URL into the system clipboard.
+
 
 ## Statusline integration
 
