@@ -5,6 +5,8 @@ let g:gitblame_message_when_not_committed = get(g:, 'gitblame_message_when_not_c
 let g:gitblame_date_format = get(g:, 'gitblame_date_format', '%c')
 let g:gitblame_display_virtual_text = get(g:, 'gitblame_display_virtual_text', 1)
 let g:gitblame_ignored_filetypes = get(g:, 'gitblame_ignored_filetypes', [])
+let g:gitblame_delay = get(g:, 'gitblame_delay', 0)
+
 execute "highlight default link gitblame " .. g:gitblame_highlight_group
 
 function! GitBlameInit()
@@ -16,7 +18,7 @@ function! GitBlameInit()
 
 	augroup gitblame
 		autocmd!
-		autocmd CursorMoved  * lua require('gitblame').show_blame_info()
+		autocmd CursorMoved  * lua require('gitblame').schedule_show_info_display()
 		autocmd CursorMovedI * lua require('gitblame').clear_virtual_text()
 		autocmd TextChanged  * lua require('gitblame').handle_text_changed()
 		autocmd InsertLeave  * lua require('gitblame').handle_insert_leave()

@@ -32,6 +32,9 @@ local date_format_has_relative_time
 ---@type string
 local current_blame_text
 
+---@type table timer luv timer object
+local delay_timer
+
 ---@return string
 local function get_date_format()
     return vim.g.gitblame_date_format
@@ -302,7 +305,23 @@ local function show_blame_info()
     last_position.line = line
 
     local info = get_blame_info(filepath, line)
-    get_blame_text(filepath, info, update_blame_text)
+    get_blame_text(filepath, info, function(blame_text)
+        update_blame_text(blame_text)
+    end)
+end
+
+local function schedule_show_info_display()
+    local delay = vim.g.gitblame_delay
+    if not delay or delay == 0 then
+        show_blame_info()
+    else
+        if delay_timer and vim.loop.is_active(delay_timer) then
+            delay_timer:stop()
+             delay_timer:close()
+            end
+        clear_virtual_text()
+        delay_timer = vim.defer_fn(show_blame_info, delay)
+    end
 end
 
 local function cleanup_file_data()
@@ -479,6 +498,7 @@ end
 return {
     init = init,
     show_blame_info = show_blame_info,
+    schedule_show_info_display = schedule_show_info_display,
     clear_virtual_text = clear_virtual_text,
     load_blames = load_blames,
     cleanup_file_data = cleanup_file_data,
