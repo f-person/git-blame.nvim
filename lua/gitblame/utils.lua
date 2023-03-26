@@ -92,7 +92,9 @@ end
 
 ---Keeping it outside the function improves performance by not
 ---finding the OS every time.
+---@type fun(url: string)
 local open_cmd
+
 ---Attempts to open a given URL in the system default browser, regardless of the OS.
 ---Source: https://stackoverflow.com/a/18864453/9714875
 ---@param url string
