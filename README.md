@@ -28,7 +28,7 @@ A git blame plugin for Neovim written in Lua
 - [Statusline integration](#statusline-integration)
 - [Changing the timeago-format language](#changing-the-timeago-format-language)
 - [Thanks To](#thanks-to)
-- [Contributors <3](#Contributors-<3)
+- [Contributors <3](#contributors-3)
 
 
 ## Installation
