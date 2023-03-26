@@ -98,7 +98,7 @@ Available options:
 let g:gitblame_date_format = '%r'
 ```
 
-#### Highlight group
+### Highlight group
 
 The highlight group for virtual text.
 
@@ -108,13 +108,13 @@ Default: `Comment`
 let g:gitblame_highlight_group = "Question"
 ```
 
-#### `nvim_buf_set_extmark` optional parameters
+### `nvim_buf_set_extmark` optional parameters
 
 `nvim_buf_set_extmark` is the function used for setting the virtual text.
 You can view an up-to-date full list of options in the
 [Neovim documentation](https://neovim.io/doc/user/api.html#nvim_buf_set_extmark()).
 
-Warning: overwriting `id` and `virt_text` will break the plugin behavior.
+**Warning**: overwriting `id` and `virt_text` will break the plugin behavior.
 
 ```vim
 let g:gitblame_set_extmark_options = {
@@ -122,7 +122,7 @@ let g:gitblame_set_extmark_options = {
     \ }
 ```
 
-#### Virtual text enabled
+### Virtual text enabled
 
 If the blame message should be displayed as virtual text.
 
@@ -134,7 +134,7 @@ Default: `1`
 let g:gitblame_display_virtual_text = 0
 ```
 
-#### Ignore by Filetype
+### Ignore by Filetype
 
 A list of filetypes for which gitblame information will not be displayed.
 
@@ -142,6 +142,18 @@ Default: `[]`
 
 ```vim
 let g:gitblame_ignored_filetypes = ['lua', 'c']
+```
+
+### Visual delay for displaying the blame info
+
+The delay in milliseconds after which the blame info will be displayed.
+
+Note that this doesn't affect the performance of the plugin.
+
+Default: `0`
+
+```vim
+let g:gitblame_delay = 1000 " 1 second
 ```
 
 ## Commands
