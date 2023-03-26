@@ -28,6 +28,7 @@ A git blame plugin for Neovim written in Lua
 - [Statusline integration](#statusline-integration)
 - [Changing the timeago-format language](#changing-the-timeago-format-language)
 - [Thanks To](#thanks-to)
+- [Contributors <3](#Contributors-<3)
 
 
 ## Installation
@@ -272,3 +273,9 @@ require('lua-timeago').set_language(require('lua-timeago/languages/hy'))
 
 * [coc-git](https://github.com/neoclide/coc-git) for some parts of code.
 * [blamer.nvim](https://github.com/APZelos/blamer.nvim) for documentation inspiration.
+
+## Contributors <3
+
+[![](https://contrib.rocks/image?repo=f-person/git-blame.nvim)](https://github.com/f-person/git-blame.nvim/graphs/contributors)
+
+Made with [contrib.rocks](https://contrib.rocks).
