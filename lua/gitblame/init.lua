@@ -311,14 +311,15 @@ local function show_blame_info()
 end
 
 local function schedule_show_info_display()
+    ---@type integer
     local delay = vim.g.gitblame_delay
     if not delay or delay == 0 then
         show_blame_info()
     else
         if delay_timer and vim.loop.is_active(delay_timer) then
             delay_timer:stop()
-             delay_timer:close()
-            end
+            delay_timer:close()
+        end
         clear_virtual_text()
         delay_timer = vim.defer_fn(show_blame_info, delay)
     end
@@ -422,8 +423,8 @@ end
 
 local function open_file_url()
     local filepath = utils.get_filepath()
-    if (filepath == nil) then
-      return
+    if filepath == nil then
+        return
     end
 
     local line_number = utils.get_line_number()
@@ -451,8 +452,8 @@ end
 
 local function copy_file_url_to_clipboard()
     local filepath = utils.get_filepath()
-    if (filepath == nil) then
-      return
+    if filepath == nil then
+        return
     end
 
     local line_number = utils.get_line_number()
