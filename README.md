@@ -2,6 +2,34 @@
 
 A git blame plugin for Neovim written in Lua
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Requirements](#requirements)
+- [The Why](#the-why)
+- [Demo](#demo)
+- [Configuration](#configuration)
+  - [Enabled](#enabled)
+  - [Message template](#message-template)
+  - [Message when not committed yet](#message-when-not-committed-yet)
+  - [Date format](#date-format)
+  - [Highlight group](#highlight-group)
+  - [nvim_buf_set_extmark optional parameters](#nvim_buf_set_extmark-optional-parameters)
+  - [Virtual text enabled](#virtual-text-enabled)
+  - [Ignore by Filetype](#ignore-by-filetype)
+  - [Visual delay for displaying the blame info](#visual-delay-for-displaying-the-blame-info)
+- [Commands](#commands)
+  - [Open the commit URL in browser](#open-the-commit-url-in-browser)
+  - [Enable/Disable git blame messages](#enabledisable-git-blame-messages)
+  - [Copy SHA hash](#copy-sha-hash)
+  - [Copy Commit URL](#copy-commit-url)
+  - [Open file URL in browser](#open-file-url-in-browser)
+  - [Copy file URL](#copy-file-url)
+- [Statusline integration](#statusline-integration)
+- [Changing the timeago-format language](#changing-the-timeago-format-language)
+- [Thanks To](#thanks-to)
+
+
 ## Installation
 
 ### Using [vim-plug](https://github.com/junegunn/vim-plug)
