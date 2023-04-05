@@ -123,4 +123,10 @@ function M.copy_to_clipboard(text)
     vim.fn.setreg("+", text)
 end
 
+---@param command string
+---@return string
+function M.make_local_command(command)
+    return "cd " .. vim.fn.shellescape(vim.fn.expand("%:p:h")) .. " && " .. command
+end
+
 return M

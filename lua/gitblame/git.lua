@@ -55,7 +55,10 @@ end
 
 ---@param callback fun(branch_name: string)
 local function get_current_branch(callback)
-    local command = "git branch --show-current"
+    if not utils.get_filepath() then
+        return
+    end
+    local command = utils.make_local_command("git branch --show-current")
 
     utils.start_job(command, {
         on_stdout = function(url)
@@ -70,7 +73,7 @@ end
 
 ---@param filepath string
 ---@param line_number number?
----@param callback fun(string)
+---@param callback fun(url: string)
 function M.get_file_url(filepath, line_number, callback)
     M.get_repo_root(function(root)
         local relative_filepath = string.sub(filepath, #root + 2)
@@ -115,9 +118,7 @@ function M.get_remote_url(callback)
     if not utils.get_filepath() then
         return
     end
-    local remote_url_command = "cd "
-        .. vim.fn.shellescape(vim.fn.expand("%:p:h"))
-        .. " && git config --get remote.origin.url"
+    local remote_url_command = utils.make_local_command("git config --get remote.origin.url")
 
     utils.start_job(remote_url_command, {
         on_stdout = function(url)
@@ -135,7 +136,7 @@ function M.get_repo_root(callback)
     if not utils.get_filepath() then
         return
     end
-    local command = "cd " .. vim.fn.shellescape(vim.fn.expand("%:p:h")) .. " && git rev-parse --show-toplevel"
+    local command = utils.make_local_command( "git rev-parse --show-toplevel")
 
     utils.start_job(command, {
         on_stdout = function(data)
