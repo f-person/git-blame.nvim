@@ -29,6 +29,7 @@ A git blame plugin for Neovim written in Lua
 - [Changing the timeago-format language](#changing-the-timeago-format-language)
 - [Thanks To](#thanks-to)
 - [Contributors <3](#contributors-3)
+- [Support](#support)
 
 
 ## Installation
@@ -279,3 +280,9 @@ require('lua-timeago').set_language(require('lua-timeago/languages/hy'))
 [![](https://contrib.rocks/image?repo=f-person/git-blame.nvim)](https://github.com/f-person/git-blame.nvim/graphs/contributors)
 
 Made with [contrib.rocks](https://contrib.rocks).
+
+## Support
+If you enjoy the plugin and want to support what I do
+
+
+<a href="https://www.buymeacoffee.com/fperson" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41"  width="174"></a>
