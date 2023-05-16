@@ -33,6 +33,21 @@ local function get_repo_url(remote_url)
         return https_url
     end
 
+    domain, path = string.match(remote_url, ".*git%@(.*)%:(.*)")
+    if domain and path then
+        return "https://" .. domain .. "/" .. path
+    end
+
+    url = string.match(remote_url, ".*git%@(.*)")
+    if url then
+        return "https://" .. url
+    end
+
+    https_url = string.match(remote_url, "(https%:%/%/.*)")
+    if https_url then
+        return https_url
+    end
+
     return remote_url
 end
 
