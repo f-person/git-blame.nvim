@@ -15,6 +15,21 @@ function M.check_is_ignored(callback)
     })
 end
 
+---@param sha string
+---@param remote_url string
+---@return string
+local function get_commit_path(sha, remote_url)
+    local domain = string.match(remote_url, ".*git%@(.*)%:.*")
+        or string.match(remote_url, "https%:%/%/.*%@(.*)%/.*")
+        or string.match(remote_url, "https%:%/%/(.*)%/.*")
+
+    if domain and domain:lower() == "bitbucket.org" then
+        return "/commits/" .. sha
+    end
+
+    return "/commit/" .. sha
+end
+
 ---@param remote_url string
 ---@return string
 local function get_repo_url(remote_url)
@@ -91,7 +106,7 @@ end
 ---@param remote_url string
 ---@return string
 function M.get_commit_url(sha, remote_url)
-    local commit_path = "/commit/" .. sha
+    local commit_path = get_commit_path(sha, remote_url)
 
     local repo_url = get_repo_url(remote_url)
     return repo_url .. commit_path
