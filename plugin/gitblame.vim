@@ -6,6 +6,7 @@ let g:gitblame_date_format = get(g:, 'gitblame_date_format', '%c')
 let g:gitblame_display_virtual_text = get(g:, 'gitblame_display_virtual_text', 1)
 let g:gitblame_ignored_filetypes = get(g:, 'gitblame_ignored_filetypes', [])
 let g:gitblame_delay = get(g:, 'gitblame_delay', 0)
+let g:gitblame_virtual_text_column = get(g:, 'gitblame_virtual_text_column', v:null)
 
 execute "highlight default link gitblame " .. g:gitblame_highlight_group
 

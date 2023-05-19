@@ -262,9 +262,17 @@ local function update_blame_text(blame_text)
     end
     current_blame_text = blame_text
 
+    local virt_text_column = nil
+    if vim.g.gitblame_virtual_text_column ~= vim.NIL
+        and utils.get_line_length() < vim.g.gitblame_virtual_text_column
+    then
+        virt_text_column = vim.g.gitblame_virtual_text_column
+    end
+
     local should_display_virtual_text = vim.g.gitblame_display_virtual_text == 1
     if should_display_virtual_text then
-        local options = { id = 1, virt_text = { { blame_text, "gitblame" } } }
+        local options = { id = 1, virt_text = { { blame_text, "gitblame" } },
+            virt_text_win_col = virt_text_column }
         local user_options = vim.g.gitblame_set_extmark_options or {}
         if type(user_options) == "table" then
             utils.merge_map(user_options, options)
