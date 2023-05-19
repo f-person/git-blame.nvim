@@ -81,6 +81,10 @@ function M.get_line_number()
     return vim.api.nvim_win_get_cursor(0)[1]
 end
 
+function M.get_line_length()
+    return string.len(vim.api.nvim_get_current_line())
+end
+
 ---Merges map entries of `source` into `target`.
 ---@param source table<any, any>
 ---@param target table<any, any>

@@ -18,6 +18,7 @@ A git blame plugin for Neovim written in Lua
   - [Virtual text enabled](#virtual-text-enabled)
   - [Ignore by Filetype](#ignore-by-filetype)
   - [Visual delay for displaying the blame info](#visual-delay-for-displaying-the-blame-info)
+  - [Start virtual text at column](#start-virtual-text-at-column)
 - [Commands](#commands)
   - [Open the commit URL in browser](#open-the-commit-url-in-browser)
   - [Enable/Disable git blame messages](#enabledisable-git-blame-messages)
@@ -184,6 +185,18 @@ Default: `0`
 
 ```vim
 let g:gitblame_delay = 1000 " 1 second
+```
+
+### Start virtual text at column
+
+Have the blame message start at a given column instead of EOL. If the current
+line is longer than the specified column value the blame message will default
+to being displayed at EOL.
+
+Default: `v:null`
+
+```vim
+let g:gitblame_virtual_text_column = 80
 ```
 
 ## Commands
