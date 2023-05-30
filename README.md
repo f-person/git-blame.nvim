@@ -11,8 +11,8 @@ A git blame plugin for Neovim written in Lua
 - [Configuration](#configuration)
   - [Enabled](#enabled)
   - [Message template](#message-template)
-  - [Message when not committed yet](#message-when-not-committed-yet)
   - [Date format](#date-format)
+  - [Message when not committed yet](#message-when-not-committed-yet)
   - [Highlight group](#highlight-group)
   - [nvim_buf_set_extmark optional parameters](#nvim_buf_set_extmark-optional-parameters)
   - [Virtual text enabled](#virtual-text-enabled)
@@ -84,17 +84,6 @@ Available options: `<author>`, `<committer>`, `<date>`, `<committer-date>`,
 let g:gitblame_message_template = '<summary> • <date> • <author>'
 ```
 
-### Message when not committed yet
-
-The blame message that will be shown when the current modification hasn't
-been committed yet.
-
-Default: `'  Not Committed Yet'`
-
-```vim
-let g:gitblame_message_when_not_committed = 'Oh please, commit this !'
-```
-
 ### Date format
 
 The [format](https://www.lua.org/pil/22.1.html) of the date fields.
@@ -128,6 +117,20 @@ Available options:
 ```vim
 let g:gitblame_date_format = '%r'
 ```
+
+### Message when not committed yet
+
+The blame message that will be shown when the current modification hasn't
+been committed yet.
+
+Supports the same template options as `g:gitblame_message_template`.
+
+Default: `'  Not Committed Yet'`
+
+```vim
+let g:gitblame_message_when_not_committed = 'Oh please, commit this !'
+```
+
 
 ### Highlight group
 

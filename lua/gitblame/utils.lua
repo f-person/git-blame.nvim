@@ -133,4 +133,21 @@ function M.make_local_command(command)
     return "cd " .. vim.fn.shellescape(vim.fn.expand("%:p:h")) .. " && " .. command
 end
 
+---@generic T
+---@param orig T 
+---@return T
+function M.shallowcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == "table" then
+        copy = {}
+        for orig_key, orig_value in pairs(orig) do
+            copy[orig_key] = orig_value
+        end
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
 return M

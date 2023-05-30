@@ -41,8 +41,13 @@ local function get_date_format()
 end
 
 ---@return string
-local function get_message_when_not_committed()
+local function get_uncommitted_message_template()
     return vim.g.gitblame_message_when_not_committed
+end
+
+---@return string
+local function get_blame_message_template()
+    return vim.g.gitblame_message_template
 end
 
 local function clear_virtual_text()
@@ -183,7 +188,6 @@ local function format_date(date)
         format = format:gsub("%%r", timeago.format(date))
     end
 
-    ---@diagnostic disable-next-line: param-type-mismatch, return-type-mismatch
     return os.date(format, date)
 end
 
@@ -197,7 +201,6 @@ local function get_blame_info(filepath, linenumber)
 
     ---@type BlameInfo
     local info
-    ---@diagnostic disable-next-line: no-unknown
     for _, v in ipairs(files_data[filepath].blames) do
         if linenumber >= v.startline and linenumber <= v.endline then
             info = v
@@ -205,6 +208,25 @@ local function get_blame_info(filepath, linenumber)
         end
     end
     return info
+end
+
+---@param info BlameInfo
+---@param template string
+---@return string formatted_message
+local function format_blame_text(info, template)
+    local text = template
+    --utils.log(info)
+    text = text:gsub("<author>", info.author)
+    text = text:gsub("<committer>", info.committer)
+    text = text:gsub("<committer%-date>", format_date(info.committer_date))
+    text = text:gsub("<date>", format_date(info.date))
+
+    local summary_escaped = info.summary:gsub("%%", "%%%%")
+    text = text:gsub("<summary>", summary_escaped)
+
+    text = text:gsub("<sha>", string.sub(info.sha, 1, 7))
+
+    return text
 end
 
 ---@class BlameInfo
@@ -217,38 +239,47 @@ end
 ---@field startline number
 ---@field endline number
 
----@param blame_info BlameInfo|nil
+---@param info BlameInfo|nil
 ---@param callback fun(blame_text: string|nil)
-local function get_blame_text(filepath, blame_info, callback)
-    local info = blame_info
-    local not_committed_blame_text = get_message_when_not_committed()
-
-    if
-        info
+local function get_blame_text(filepath, info, callback)
+    local is_info_commit = info
         and info.author
         and info.date
         and info.committer
         and info.committer_date
         and info.author ~= "Not Committed Yet"
-    then
-        ---@type string
-        local blame_text = vim.g.gitblame_message_template
-        blame_text = blame_text:gsub("<author>", info.author == current_author and "You" or info.author)
-        blame_text = blame_text:gsub("<committer>", info.committer == current_author and "You" or info.committer)
-        blame_text = blame_text:gsub("<committer%-date>", format_date(info.committer_date))
-        blame_text = blame_text:gsub("<date>", format_date(info.date))
 
-        local summary_escaped = info.summary:gsub("%%", "%%%%")
-        blame_text = blame_text:gsub("<summary>", summary_escaped)
+    if is_info_commit then
+        info.author = info.author == current_author and "You" or info.author
+        info.committer = info.committer == current_author and "You" or info.committer
 
-        blame_text = blame_text:gsub("<sha>", string.sub(info.sha, 1, 7))
+        local blame_text = format_blame_text(info, get_blame_message_template())
         callback(blame_text)
-    elseif #files_data[filepath].blames > 0 then
-        callback(not_committed_blame_text)
     else
-        git.check_is_ignored(function(is_ignored)
-            callback(not is_ignored and not_committed_blame_text or nil)
-        end)
+        if info then
+            info = utils.shallowcopy(info)
+
+            info.author = "You"
+            info.committer = "You"
+            info.summary = "Not Commited Yet"
+
+            -- NOTE: While this works okay-ish, I'm not sure this is the behavior
+            -- people expect, since sometimes git-blame just doesn't provide
+            -- the date of uncommited changes.
+            info.date = info.date or os.time()
+            info.committer_date = info.committer_date or os.time()
+        end
+
+        if #files_data[filepath].blames > 0 then
+            local blame_text = format_blame_text(info, get_uncommitted_message_template())
+            callback(blame_text)
+        else
+            git.check_is_ignored(function(is_ignored)
+                local result = (not is_ignored and info) and format_blame_text(info, get_uncommitted_message_template())
+                    or nil
+                callback(result)
+            end)
+        end
     end
 end
 
