@@ -21,6 +21,7 @@ function! GitBlameInit()
 		autocmd!
 		autocmd CursorMoved  * lua require('gitblame').schedule_show_info_display()
 		autocmd CursorMovedI * lua require('gitblame').clear_virtual_text()
+		autocmd InsertEnter * lua require('gitblame').clear_virtual_text()
 		autocmd TextChanged  * lua require('gitblame').handle_text_changed()
 		autocmd InsertLeave  * lua require('gitblame').handle_insert_leave()
 		autocmd BufEnter     * lua require('gitblame').handle_buf_enter()
