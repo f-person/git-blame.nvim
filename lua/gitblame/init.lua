@@ -224,7 +224,7 @@ local function format_blame_text(info, template)
     local summary_escaped = info.summary:gsub("%%", "%%%%")
     text = text:gsub("<summary>", summary_escaped)
 
-    text = text:gsub("<sha>", string.sub(info.sha, 1, 7))
+    text = text:gsub("<sha>", info.sha and string.sub(info.sha, 1, 7) or "")
 
     return text
 end
@@ -273,6 +273,7 @@ local function get_blame_text(filepath, info, callback)
         info.committer_date = info.committer_date or os.time()
 
         if #files_data[filepath].blames > 0 then
+
             local blame_text = format_blame_text(info, get_uncommitted_message_template())
             callback(blame_text)
         else
