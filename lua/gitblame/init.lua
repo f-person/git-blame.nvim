@@ -258,24 +258,26 @@ local function get_blame_text(filepath, info, callback)
     else
         if info then
             info = utils.shallowcopy(info)
-
-            info.author = "You"
-            info.committer = "You"
-            info.summary = "Not Commited Yet"
-
-            -- NOTE: While this works okay-ish, I'm not sure this is the behavior
-            -- people expect, since sometimes git-blame just doesn't provide
-            -- the date of uncommited changes.
-            info.date = info.date or os.time()
-            info.committer_date = info.committer_date or os.time()
+        else
+            info = {}
         end
+
+        info.author = "You"
+        info.committer = "You"
+        info.summary = "Not Commited Yet"
+
+        -- NOTE: While this works okay-ish, I'm not sure this is the behavior
+        -- people expect, since sometimes git-blame just doesn't provide
+        -- the date of uncommited changes.
+        info.date = info.date or os.time()
+        info.committer_date = info.committer_date or os.time()
 
         if #files_data[filepath].blames > 0 then
             local blame_text = format_blame_text(info, get_uncommitted_message_template())
             callback(blame_text)
         else
             git.check_is_ignored(function(is_ignored)
-                local result = (not is_ignored and info) and format_blame_text(info, get_uncommitted_message_template())
+                local result = not is_ignored and format_blame_text(info, get_uncommitted_message_template())
                     or nil
                 callback(result)
             end)
