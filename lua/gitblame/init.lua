@@ -369,7 +369,6 @@ local function schedule_show_info_display()
 
     if position_info.is_on_same_line then
         if not need_update_after_horizontal_move then
-            print("dont need your stuff brah" .. os.clock())
             return
         else
             need_update_after_horizontal_move = false
