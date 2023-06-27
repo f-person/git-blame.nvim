@@ -14,7 +14,6 @@ end
 local function dump(o)
     if type(o) == "table" then
         local s = "{ "
-        ---@diagnostic disable-next-line: no-unknown
         for k, v in pairs(o) do
             if type(k) ~= "number" then
                 k = '"' .. k .. '"'

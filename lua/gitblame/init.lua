@@ -274,13 +274,11 @@ local function get_blame_text(filepath, info, callback)
         info.committer_date = info.committer_date or os.time()
 
         if #files_data[filepath].blames > 0 then
-
             local blame_text = format_blame_text(info, get_uncommitted_message_template())
             callback(blame_text)
         else
             git.check_is_ignored(function(is_ignored)
-                local result = not is_ignored and format_blame_text(info, get_uncommitted_message_template())
-                    or nil
+                local result = not is_ignored and format_blame_text(info, get_uncommitted_message_template()) or nil
                 callback(result)
             end)
         end
@@ -324,17 +322,29 @@ local function update_blame_text(blame_text)
     end
 end
 
-local function show_blame_info()
+---@class PositionInfo
+---@field filepath string|nil
+---@field line integer
+---@field is_on_same_line boolean
+
+---@return PositionInfo
+local function get_position_info()
     local filepath = utils.get_filepath()
     local line = utils.get_line_number()
+    local is_on_same_line = last_position.filepath == filepath and last_position.line == line
 
-    if last_position.filepath == filepath and last_position.line == line then
-        if not need_update_after_horizontal_move then
-            return
-        else
-            need_update_after_horizontal_move = false
-        end
-    end
+    return {
+        filepath = filepath,
+        line = line,
+        is_on_same_line = is_on_same_line,
+    }
+end
+
+local function show_blame_info()
+    local position_info = get_position_info()
+
+    local filepath = position_info.filepath
+    local line = position_info.line
 
     if not files_data[filepath] then
         load_blames(show_blame_info)
@@ -348,9 +358,6 @@ local function show_blame_info()
         return
     end
 
-    last_position.filepath = filepath
-    last_position.line = line
-
     local info = get_blame_info(filepath, line)
     get_blame_text(filepath, info, function(blame_text)
         update_blame_text(blame_text)
@@ -358,9 +365,21 @@ local function show_blame_info()
 end
 
 local function schedule_show_info_display()
+    local position_info = get_position_info()
+
+    if position_info.is_on_same_line then
+        if not need_update_after_horizontal_move then
+            print("dont need your stuff brah" .. os.clock())
+            return
+        else
+            need_update_after_horizontal_move = false
+        end
+    end
+
     ---@type integer
     local delay = vim.g.gitblame_delay
-    if not delay or delay == 0 then
+
+    if not delay or delay == 0 or position_info.is_on_same_line then
         show_blame_info()
     else
         if delay_timer and vim.loop.is_active(delay_timer) then
@@ -370,6 +389,9 @@ local function schedule_show_info_display()
         clear_virtual_text()
         delay_timer = vim.defer_fn(show_blame_info, delay)
     end
+
+    last_position.filepath = position_info.filepath
+    last_position.line = position_info.line
 end
 
 local function cleanup_file_data()
@@ -413,14 +435,7 @@ local function init()
 end
 
 local function handle_text_changed()
-    local filepath = utils.get_filepath()
-    if not filepath then
-        return
-    end
-
-    local line = utils.get_line_number()
-
-    if last_position.filepath == filepath and last_position.line == line then
+    if get_position_info().is_on_same_line then
         need_update_after_horizontal_move = true
     end
 
