@@ -74,7 +74,7 @@ have the `gitblame_` prefix).
 ```lua
 require('gitblame').setup {
      --Note how the `gitblame_` prefix is omitted in `setup`
-    enabled: false,
+    enabled = false,
 }
 ```
 
