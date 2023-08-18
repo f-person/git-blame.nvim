@@ -557,8 +557,36 @@ local function disable()
     last_position = {}
 end
 
+---@class SetupOptions
+---@field enabled boolean
+---@field message_template string
+---@field date_format string
+---@field message_when_not_committed string
+---@field highlight_group string
+---@field gitblame_set_extmark_options object @See :h nvim_buf_set_extmark() to check what you can pass here
+---@field display_virtual_text boolean
+---@field ignored_filetypes string[]
+---@field delay number @Visual delay for displaying virtual text
+---@field virtual_text_column nil|number @The column on which to start displaying virtual text
+
+---@param opts SetupOptions
+local function setup(opts)
+    opts = opts or {}
+
+    for key, value in pairs(opts) do
+        vim.g["gitblame_" .. key] = value
+    end
+
+    -- This is here for backwards compatibility reasons
+    -- to not break configs that use vimscript mappings instead of Lua.
+    if vim.g.enabled == false then
+        disable()
+    end
+end
+
 return {
     init = init,
+    setup = setup,
     show_blame_info = show_blame_info,
     schedule_show_info_display = schedule_show_info_display,
     clear_virtual_text = clear_virtual_text,

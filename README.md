@@ -9,6 +9,7 @@ A git blame plugin for Neovim written in Lua
 - [The Why](#the-why)
 - [Demo](#demo)
 - [Configuration](#configuration)
+  - [Using Lua](#using-lua)
   - [Enabled](#enabled)
   - [Message template](#message-template)
   - [Date format](#date-format)
@@ -59,6 +60,23 @@ and having something running on Node.js just for git blame was not the best thin
 ![demo](assets/demo.png?raw=true)
 
 ## Configuration
+
+### Using Lua
+
+You can use `setup` to configure the plugin in Lua. This is the recommended way
+if you're using Lua for your configs. Read the documentation below to learn
+more about specific options (*NOTE:* options in the `setup` function don't
+have the `gitblame_` prefix).
+
+> **NOTE:** you don't have to call `setup` if you don't want to customize the
+> default behavior.
+
+```lua
+require('gitblame').setup {
+     --Note how the `gitblame_` prefix is omitted in `setup`
+    enabled: false,
+}
+```
 
 ### Enabled
 
