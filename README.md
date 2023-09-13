@@ -19,8 +19,6 @@ A git blame plugin for Neovim written in Lua
   - [Virtual text enabled](#virtual-text-enabled)
   - [Ignore by Filetype](#ignore-by-filetype)
   - [Visual delay for displaying the blame info](#visual-delay-for-displaying-the-blame-info)
-  - [Start virtual text at column](#start-virtual-text-at-column)
-  - [Use blame commit file URLs](#use-blame-commit-file-urls)
 - [Commands](#commands)
   - [Open the commit URL in browser](#open-the-commit-url-in-browser)
   - [Enable/Disable git blame messages](#enabledisable-git-blame-messages)
@@ -163,14 +161,25 @@ let g:gitblame_highlight_group = "Question"
 
 ### `nvim_buf_set_extmark` optional parameters
 
-`nvim_buf_set_extmark` is the function used for setting the virtual text.
+If the length of git blame content + line content isn't greater than the
+monitor width we display git blame content in the same line. If the length
+exceeds we start displaying git blame content in the next line and "wrap it"
+so that it doesn't exceed monitor width.
+
+We display git blame content as virtual text, to do the same we use nvim's
+`nvim_buf_set_extmark` function. You can pass options to the function via two
+variables `gitblame_virttext_set_extmark_options` and
+`gitblame_virtlines_set_extmark_options`. These options are used in same
+line and next line virtual text (based on situation) respectively.
+
 You can view an up-to-date full list of options in the
 [Neovim documentation](https://neovim.io/doc/user/api.html#nvim_buf_set_extmark()).
 
-**Warning**: overwriting `id` and `virt_text` will break the plugin behavior.
+**Warning**: overwriting `id` or `virt_text` or `virt_lines` will break the
+plugin behavior.
 
 ```vim
-let g:gitblame_set_extmark_options = {
+let g:gitblame_virttext_set_extmark_options = {
     \ 'priority': 7,
     \ }
 ```
@@ -207,28 +216,6 @@ Default: `0`
 
 ```vim
 let g:gitblame_delay = 1000 " 1 second
-```
-
-### Start virtual text at column
-
-Have the blame message start at a given column instead of EOL. If the current
-line is longer than the specified column value the blame message will default
-to being displayed at EOL.
-
-Default: `v:null`
-
-```vim
-let g:gitblame_virtual_text_column = 80
-```
-
-## Use blame commit file URLs
-
-By default the commands `GitBlameOpenFileURL` and `GitBlameCopyFileURL` open the current file at latest branch commit. If you would like to open these files at the latest blame commit (in other words, the commit marked by the blame), set this to true. For ranges, the blame selected will be the most recent blame from the range.
-
-Default: `false`
-
-```lua
-vim.g.gitblame_use_blame_commit_file_urls = true
 ```
 
 ## Commands

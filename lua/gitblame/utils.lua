@@ -157,4 +157,14 @@ function M.shallowcopy(orig)
     return copy
 end
 
+--- Creates a multi-dimensional array which is used by nvim_buf_set_extmark virt_lines,
+--- check documentation for format.
+function M.split_blame_text(text, highlightGroup, chunkSize)
+  local parts = {}
+  for i = 1, #text, chunkSize do
+    parts[#parts + 1] = {{ text:sub(i, i + chunkSize - 1), highlightGroup }}
+  end
+  return parts
+end
+
 return M

@@ -327,6 +327,7 @@ local function get_blame_text(filepath, info, callback)
     end
 end
 
+
 ---Updates `current_blame_text` and sets the virtual text if it should.
 ---@param blame_text string|nil
 local function update_blame_text(blame_text)
@@ -337,27 +338,36 @@ local function update_blame_text(blame_text)
     end
     current_blame_text = blame_text
 
-    local virt_text_column = nil
-    if
-        vim.g.gitblame_virtual_text_column ~= vim.NIL
-        and utils.get_line_length() < vim.g.gitblame_virtual_text_column
-    then
-        virt_text_column = vim.g.gitblame_virtual_text_column
-    end
-
     local should_display_virtual_text = vim.g.gitblame_display_virtual_text == 1
 
     if should_display_virtual_text then
-        local options = {
-            id = 1,
-            virt_text = { { blame_text, vim.g.gitblame_highlight_group } },
-            virt_text_win_col = virt_text_column,
-        }
-        local user_options = vim.g.gitblame_set_extmark_options or {}
+        current_line_length = utils.get_line_length()
+        local monitor_width = vim.fn.winwidth(current_window)
+
+        local options = {}
+        local user_options = {}
+
+        -- Use virt_lines to display virtual text in the next line when git blame
+        -- content + current line would exceed monitor width
+        if (#blame_text + current_line_length > monitor_width) then
+          blame_text_display_formatted = utils.split_blame_text(blame_text, "gitblame",monitor_width)
+          options = {
+              id = 1,
+              virt_lines = blame_text_display_formatted,
+          }
+          user_options = vim.g.gitblame_virtlines_set_extmark_options or {}
+        else
+          options = {
+              id = 1,
+              virt_text = {{ blame_text, "gitblame" }},
+          }
+          user_options = vim.g.gitblame_virttext_set_extmark_options or {}
+        end
+
         if type(user_options) == "table" then
             utils.merge_map(user_options, options)
         elseif user_options then
-            utils.log("gitblame_set_extmark_options should be a table")
+            utils.log("gitblame_{virttext/virtlines}_set_extmark should be a table")
         end
 
         local line = utils.get_line_number()
@@ -639,7 +649,8 @@ end
 ---@field date_format string
 ---@field message_when_not_committed string
 ---@field highlight_group string
----@field gitblame_set_extmark_options object @See :h nvim_buf_set_extmark() to check what you can pass here
+---@field gitblame_virttext_set_extmark_options object @See :h nvim_buf_set_extmark() to check what you can pass here
+---@field gitblame_virtlines_set_extmark_options object @See :h nvim_buf_set_extmark() to check what you can pass here
 ---@field display_virtual_text boolean
 ---@field ignored_filetypes string[]
 ---@field delay number @Visual delay for displaying virtual text
