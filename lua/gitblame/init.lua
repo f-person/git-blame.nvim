@@ -455,7 +455,7 @@ end
 ---Returns SHA for the latest commit to the current branch.
 ---@param callback fun(sha: string)
 local function get_latest_sha(callback)
-    start_job('git rev-parse head', {
+    start_job('git rev-parse HEAD', {
         on_stdout = function(data)
             callback(data[1])
         end,
