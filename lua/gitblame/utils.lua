@@ -80,8 +80,16 @@ function M.get_line_number()
     return vim.api.nvim_win_get_cursor(0)[1]
 end
 
+--@return number of tabs and tabstop in string
+function M.get_tabs_len_in_string(s)
+    local _, tab_count = s:gsub("\t","")
+    return tab_count, vim.api.nvim_buf_get_option(0, "tabstop")
+end
+
 function M.get_line_length()
-    return string.len(vim.api.nvim_get_current_line())
+    local cur_line = vim.api.nvim_get_current_line()
+    local tc, ts = M.get_tabs_len_in_string(cur_line)
+    return string.len(cur_line) + (tc * (ts - 1))
 end
 
 ---Merges map entries of `source` into `target`.
