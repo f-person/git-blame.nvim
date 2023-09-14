@@ -245,8 +245,10 @@ the system clipboard.
 
 ### Open file URL in browser
 
-`:GitBlameOpenFileURL` opens the file (with a mark set on the current line) in
-the browser.
+`:GitBlameOpenFileURL` opens the file in the default browser.
+
+The URL is scoped to the latest commit on the current branch and
+has a mark of the current line. (same is true for `GitBlameCopyFileURL`)
 
 ### Copy file URL
 
