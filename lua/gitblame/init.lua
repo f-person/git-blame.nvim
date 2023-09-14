@@ -452,6 +452,16 @@ local function handle_insert_leave()
     )
 end
 
+---Returns SHA for the latest commit to the current branch.
+---@param callback fun(sha: string)
+local function get_latest_sha(callback)
+    start_job('git rev-parse head', {
+        on_stdout = function(data)
+            callback(data[1])
+        end,
+    })
+end
+
 ---Returns SHA for the current line.
 ---@param callback fun(sha: string)
 local function get_sha(callback)
@@ -490,7 +500,9 @@ local function open_file_url()
 
     local line_number = utils.get_line_number()
 
-    git.open_file_in_browser(filepath, line_number)
+    get_latest_sha(function(sha)
+        git.open_file_in_browser(filepath, sha, line_number)
+    end)
 end
 
 local function get_current_blame_text()
@@ -519,8 +531,10 @@ local function copy_file_url_to_clipboard()
 
     local line_number = utils.get_line_number()
 
-    git.get_file_url(filepath, line_number, function(url)
-        utils.copy_to_clipboard(url)
+    get_latest_sha(function(sha)
+        git.get_file_url(filepath, sha, line_number, function(url)
+            utils.copy_to_clipboard(url)
+        end)
     end)
 end
 

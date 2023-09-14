@@ -102,18 +102,26 @@ local function get_current_branch(callback)
 end
 
 ---@param filepath string
+---@param sha string?
 ---@param line_number number?
 ---@param callback fun(url: string)
-function M.get_file_url(filepath, line_number, callback)
+function M.get_file_url(filepath, sha, line_number, callback)
     M.get_repo_root(function(root)
         local relative_filepath = string.sub(filepath, #root + 2)
 
-        get_current_branch(function(branch)
+        if sha == nil then
+            get_current_branch(function(branch)
+                M.get_remote_url(function(remote_url)
+                    local url = get_file_url(remote_url, branch, relative_filepath, line_number)
+                    callback(url)
+                end)
+            end)
+        else
             M.get_remote_url(function(remote_url)
-                local url = get_file_url(remote_url, branch, relative_filepath, line_number)
+                local url = get_file_url(remote_url, sha, relative_filepath, line_number)
                 callback(url)
             end)
-        end)
+        end
     end)
 end
 
@@ -128,9 +136,10 @@ function M.get_commit_url(sha, remote_url)
 end
 
 ---@param filepath string
+---@param sha string?
 ---@param line_number number?
-function M.open_file_in_browser(filepath, line_number)
-    M.get_file_url(filepath, line_number, function(url)
+function M.open_file_in_browser(filepath, sha, line_number)
+    M.get_file_url(filepath, sha, line_number, function(url)
         utils.launch_url(url)
     end)
 end
@@ -166,7 +175,7 @@ function M.get_repo_root(callback)
     if not utils.get_filepath() then
         return
     end
-    local command = utils.make_local_command( "git rev-parse --show-toplevel")
+    local command = utils.make_local_command("git rev-parse --show-toplevel")
 
     utils.start_job(command, {
         on_stdout = function(data)
