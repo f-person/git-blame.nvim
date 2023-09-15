@@ -73,15 +73,22 @@ end
 ---@param line2 number?
 ---@return string
 local function get_file_url(remote_url, branch, filepath, line1, line2)
-    local file_path = "/blob/" .. branch .. "/" .. filepath
-
     local repo_url = get_repo_url(remote_url)
+    local isSrcHut = repo_url:find('git.sr.ht')
+
+    local file_path = "/blob/" .. branch .. "/" .. filepath
+    if isSrcHut then
+        file_path = "/tree/" .. branch .. "/" .. filepath
+    end
 
     if line1 == nil then
         return repo_url .. file_path
     elseif line2 == nil or line1 == line2 then
         return repo_url .. file_path .. "#L" .. line1
     else
+        if isSrcHut then
+            return repo_url .. file_path .. "#L" .. line1 .. '-' .. line2
+        end
         return repo_url .. file_path .. "#L" .. line1 .. '-L' .. line2
     end
 end
