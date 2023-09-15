@@ -492,16 +492,20 @@ local function open_commit_url()
     end)
 end
 
-local function open_file_url()
+-- See :h nvim_create_user_command for more information.
+---@class CommandArgs
+---@field line1 number
+---@field line2 number
+
+---@param args CommandArgs
+local function open_file_url(args)
     local filepath = utils.get_filepath()
     if filepath == nil then
         return
     end
 
-    local line_number = utils.get_line_number()
-
     get_latest_sha(function(sha)
-        git.open_file_in_browser(filepath, sha, line_number)
+        git.open_file_in_browser(filepath, sha, args.line1, args.line2)
     end)
 end
 
@@ -523,16 +527,15 @@ local function copy_sha_to_clipboard()
     end)
 end
 
-local function copy_file_url_to_clipboard()
+---@param args CommandArgs
+local function copy_file_url_to_clipboard(args)
     local filepath = utils.get_filepath()
     if filepath == nil then
         return
     end
 
-    local line_number = utils.get_line_number()
-
     get_latest_sha(function(sha)
-        git.get_file_url(filepath, sha, line_number, function(url)
+        git.get_file_url(filepath, sha, args.line1, args.line2, function(url)
             utils.copy_to_clipboard(url)
         end)
     end)

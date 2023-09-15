@@ -51,10 +51,6 @@ function! GitBlameToggle()
 	endif
 endfunction
 
-function! GitBlameOpenFileURL()
-    lua require('gitblame').open_file_url()
-endfunction
-
 function! GitBlameOpenCommitURL() 
     lua require('gitblame').open_commit_url()
 endfunction
@@ -67,17 +63,13 @@ function! GitBlameCopyCommitURL()
     lua require('gitblame').copy_commit_url_to_clipboard()
 endfunction
 
-function! GitBlameCopyFileURL()
-    lua require('gitblame').copy_file_url_to_clipboard()
-endfunction
-
 :command! -nargs=0 GitBlameToggle call GitBlameToggle()
 :command! -nargs=0 GitBlameEnable call GitBlameEnable()
 :command! -nargs=0 GitBlameDisable call GitBlameDisable()
 :command! -nargs=0 GitBlameOpenCommitURL call GitBlameOpenCommitURL()
-:command! -nargs=0 GitBlameOpenFileURL call GitBlameOpenFileURL()
+lua vim.api.nvim_create_user_command('GitBlameOpenFileURL', require('gitblame').open_file_url, { range = true })
 :command! -nargs=0 GitBlameCopySHA call GitBlameCopySHA()
 :command! -nargs=0 GitBlameCopyCommitURL call GitBlameCopyCommitURL()
-:command! -nargs=0 GitBlameCopyFileURL call GitBlameCopyFileURL()
+lua vim.api.nvim_create_user_command('GitBlameCopyFileURL', require('gitblame').copy_file_url_to_clipboard, { range = true })
 
 call GitBlameInit()
