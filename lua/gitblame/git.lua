@@ -69,17 +69,20 @@ end
 ---@param remote_url string
 ---@param branch string
 ---@param filepath string
----@param line_number number?
+---@param line1 number?
+---@param line2 number?
 ---@return string
-local function get_file_url(remote_url, branch, filepath, line_number)
+local function get_file_url(remote_url, branch, filepath, line1, line2)
     local file_path = "/blob/" .. branch .. "/" .. filepath
 
     local repo_url = get_repo_url(remote_url)
 
-    if line_number == nil then
+    if line1 == nil then
         return repo_url .. file_path
+    elseif line2 == nil or line1 == line2 then
+        return repo_url .. file_path .. "#L" .. line1
     else
-        return repo_url .. file_path .. "#L" .. line_number
+        return repo_url .. file_path .. "#L" .. line1 .. '-L' .. line2
     end
 end
 
@@ -103,22 +106,23 @@ end
 
 ---@param filepath string
 ---@param sha string?
----@param line_number number?
+---@param line1 number?
+---@param line2 number?
 ---@param callback fun(url: string)
-function M.get_file_url(filepath, sha, line_number, callback)
+function M.get_file_url(filepath, sha, line1, line2, callback)
     M.get_repo_root(function(root)
         local relative_filepath = string.sub(filepath, #root + 2)
 
         if sha == nil then
             get_current_branch(function(branch)
                 M.get_remote_url(function(remote_url)
-                    local url = get_file_url(remote_url, branch, relative_filepath, line_number)
+                    local url = get_file_url(remote_url, branch, relative_filepath, line1, line2)
                     callback(url)
                 end)
             end)
         else
             M.get_remote_url(function(remote_url)
-                local url = get_file_url(remote_url, sha, relative_filepath, line_number)
+                local url = get_file_url(remote_url, sha, relative_filepath, line1, line2)
                 callback(url)
             end)
         end
@@ -137,9 +141,10 @@ end
 
 ---@param filepath string
 ---@param sha string?
----@param line_number number?
-function M.open_file_in_browser(filepath, sha, line_number)
-    M.get_file_url(filepath, sha, line_number, function(url)
+---@param line1 number?
+---@param line2 number?
+function M.open_file_in_browser(filepath, sha, line1, line2)
+    M.get_file_url(filepath, sha, line1, line2, function(url)
         utils.launch_url(url)
     end)
 end
