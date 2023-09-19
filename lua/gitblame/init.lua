@@ -304,6 +304,11 @@ local function update_blame_text(blame_text)
     end
 
     local should_display_virtual_text = vim.g.gitblame_display_virtual_text == 1
+
+    if #vim.api.nvim_get_hl(0, { name = "gitblame" }) == 0 then
+        vim.api.nvim_set_hl(0, "gitblame", { link = vim.g.gitblame_highlight_group })
+    end
+
     if should_display_virtual_text then
         local options = {
             id = 1,
