@@ -8,7 +8,6 @@ let g:gitblame_ignored_filetypes = get(g:, 'gitblame_ignored_filetypes', [])
 let g:gitblame_delay = get(g:, 'gitblame_delay', 0)
 let g:gitblame_virtual_text_column = get(g:, 'gitblame_virtual_text_column', v:null)
 
-execute "highlight default link gitblame " .. g:gitblame_highlight_group
 
 function! GitBlameInit()
 	if g:gitblame_enabled == 0
