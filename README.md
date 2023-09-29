@@ -44,7 +44,7 @@ Plug 'f-person/git-blame.nvim'
 
 ## Requirements
 
-* Neovim >= 0.5.0
+* Neovim >= 0.9.0
 * git
 
 ## The Why
