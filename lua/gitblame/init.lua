@@ -305,14 +305,10 @@ local function update_blame_text(blame_text)
 
     local should_display_virtual_text = vim.g.gitblame_display_virtual_text == 1
 
-    if #vim.api.nvim_get_hl(0, { name = "gitblame" }) == 0 then
-        vim.api.nvim_set_hl(0, "gitblame", { link = vim.g.gitblame_highlight_group })
-    end
-
     if should_display_virtual_text then
         local options = {
             id = 1,
-            virt_text = { { blame_text, "gitblame" } },
+            virt_text = { { blame_text, vim.g.gitblame_highlight_group } },
             virt_text_win_col = virt_text_column,
         }
         local user_options = vim.g.gitblame_set_extmark_options or {}
@@ -460,7 +456,7 @@ end
 ---Returns SHA for the latest commit to the current branch.
 ---@param callback fun(sha: string)
 local function get_latest_sha(callback)
-    start_job('git rev-parse HEAD', {
+    start_job("git rev-parse HEAD", {
         on_stdout = function(data)
             callback(data[1])
         end,
