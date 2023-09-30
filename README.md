@@ -69,7 +69,7 @@ if you're using Lua for your configs. Read the documentation below to learn
 more about specific options (*NOTE:* options in the `setup` function don't
 have the `gitblame_` prefix).
 
-> **NOTE:** you don't have to call `setup` if you don't want to customize the
+> **NOTE:** you must call `setup` if even if you don't want to customize the
 > default behavior.
 
 ```lua
