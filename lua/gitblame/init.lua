@@ -2,6 +2,7 @@ local git = require("gitblame.git")
 local utils = require("gitblame.utils")
 local start_job = utils.start_job
 local timeago = require("lua-timeago")
+local M = {}
 
 ---@type integer
 local NAMESPACE_ID = vim.api.nvim_create_namespace("git-blame-virtual-text")
@@ -339,30 +340,29 @@ local function update_blame_text(blame_text)
 
     local virt_text_column = nil
     if
-        vim.g.gitblame_virtual_text_column ~= vim.NIL
+        vim.g.gitblame_virtual_text_column
         and utils.get_line_length() < vim.g.gitblame_virtual_text_column
     then
         virt_text_column = vim.g.gitblame_virtual_text_column
     end
 
-    local should_display_virtual_text = vim.g.gitblame_display_virtual_text == 1
-
-    if should_display_virtual_text then
-        local options = {
-            id = 1,
-            virt_text = { { blame_text, vim.g.gitblame_highlight_group } },
-            virt_text_win_col = virt_text_column,
-        }
-        local user_options = vim.g.gitblame_set_extmark_options or {}
-        if type(user_options) == "table" then
-            utils.merge_map(user_options, options)
-        elseif user_options then
-            utils.log("gitblame_set_extmark_options should be a table")
-        end
-
-        local line = utils.get_line_number()
-        vim.api.nvim_buf_set_extmark(0, NAMESPACE_ID, line - 1, 0, options)
+    if not vim.g.gitblame_display_virtual_text then
+        return
     end
+    local options = {
+        id = 1,
+        virt_text = { { blame_text, vim.g.gitblame_highlight_group } },
+        virt_text_win_col = virt_text_column,
+    }
+    local user_options = vim.g.gitblame_set_extmark_options or {}
+    if type(user_options) == "table" then
+        utils.merge_map(user_options, options)
+    elseif user_options then
+        utils.log("gitblame_set_extmark_options should be a table")
+    end
+
+    local line = utils.get_line_number()
+    vim.api.nvim_buf_set_extmark(0, NAMESPACE_ID, line - 1, 0, options)
 end
 
 ---@class PositionInfo
@@ -510,7 +510,7 @@ end
 ---@param callback fun(sha: string)
 ---@param line1 number?
 ---@param line2 number?
-local function get_sha(callback, line1, line2)
+M.get_sha = function(callback, line1, line2)
     local filepath = utils.get_filepath()
     local line_number = line1 or utils.get_line_number()
     local info = get_blame_info(filepath, line_number, line2)
@@ -525,8 +525,8 @@ local function get_sha(callback, line1, line2)
     end
 end
 
-local function open_commit_url()
-    get_sha(function(sha)
+M.open_commit_url = function()
+    M.get_sha(function(sha)
         local empty_sha = "0000000000000000000000000000000000000000"
 
         if sha and sha ~= empty_sha then
@@ -543,7 +543,7 @@ end
 ---@field line2 number
 
 ---@param args CommandArgs
-local function open_file_url(args)
+M.open_file_url = function(args)
     local filepath = utils.get_filepath()
     if filepath == nil then
         return
@@ -569,8 +569,8 @@ local function is_blame_text_available()
     return current_blame_text ~= nil
 end
 
-local function copy_sha_to_clipboard()
-    get_sha(function(sha)
+M.copy_sha_to_clipboard = function()
+    M.get_sha(function(sha)
         if sha then
             utils.copy_to_clipboard(sha)
         else
@@ -580,7 +580,7 @@ local function copy_sha_to_clipboard()
 end
 
 ---@param args CommandArgs
-local function copy_file_url_to_clipboard(args)
+M.copy_file_url_to_clipboard = function(args)
     local filepath = utils.get_filepath()
     if filepath == nil then
         return
@@ -600,8 +600,8 @@ local function copy_file_url_to_clipboard(args)
     end
 end
 
-local function copy_commit_url_to_clipboard()
-    get_sha(function(sha)
+M.copy_commit_url_to_clipboard = function()
+    M.get_sha(function(sha)
         if sha then
             git.get_remote_url(function(remote_url)
                 local commit_url = git.get_commit_url(sha, remote_url)
@@ -621,16 +621,60 @@ local function clear_all_extmarks()
     end
 end
 
-local function disable()
-    if vim.g.gitblame_enabled == 0 then
+local function set_autocmds()
+    local autocmd = vim.api.nvim_create_autocmd
+    local group = vim.api.nvim_create_augroup("gitblame", { clear = true })
+
+    autocmd("CursorMoved", { callback = schedule_show_info_display, group = group })
+    autocmd("CursorMovedI", { callback = clear_virtual_text, group = group })
+    autocmd("InsertEnter", { callback = clear_virtual_text, group = group })
+    autocmd("TextChanged", { callback = handle_text_changed, group = group })
+    autocmd("InsertLeave", { callback = handle_insert_leave, group = group })
+    autocmd("BufEnter", { callback = handle_buf_enter, group = group })
+    autocmd("BufDelete", { callback = cleanup_file_data, group = group })
+end
+
+M.disable = function()
+    if not vim.g.gitblame_enabled then
         return
     end
 
-    vim.g.gitblame_enabled = 0
-
+    vim.g.gitblame_enabled = false
+    vim.api.nvim_del_augroup_by_name("gitblame")
     clear_all_extmarks()
     clear_files_data()
     last_position = {}
+end
+
+M.enable = function()
+    if vim.g.gitblame_enabled then
+        return
+    end
+
+    vim.g.gitblame_enabled = true
+    init()
+    set_autocmds()
+end
+
+M.toggle = function()
+    if vim.g.gitblame_enabled then
+        M.disable()
+    else
+        M.enable()
+    end
+end
+
+local create_cmds = function()
+    local command = vim.api.nvim_create_user_command
+
+    command("GitBlameToggle", M.toggle, {})
+    command("GitBlameEnable", M.enable, {})
+    command("GitBlameDisable", M.disable, {})
+    command("GitBlameOpenCommitURL", M.open_commit_url, {})
+    command("GitBlameOpenFileURL", M.open_file_url, { range = true })
+    command("GitBlameCopySHA", M.copy_sha_to_clipboard, {})
+    command("GitBlameCopyCommitURL", M.copy_commit_url_to_clipboard, {})
+    command("GitBlameCopyFileURL", M.copy_file_url_to_clipboard, { range = true })
 end
 
 ---@class SetupOptions
@@ -647,38 +691,15 @@ end
 ---@field virtual_text_column nil|number @The column on which to start displaying virtual text
 
 ---@param opts SetupOptions
-local function setup(opts)
-    opts = opts or {}
+M.setup = function(opts)
+    require("gitblame.config").setup(opts)
 
-    for key, value in pairs(opts) do
-        vim.g["gitblame_" .. key] = value
-    end
+    create_cmds()
 
-    -- This is here for backwards compatibility reasons
-    -- to not break configs that use vimscript mappings instead of Lua.
-    if vim.g.enabled == false then
-        disable()
+    if vim.g.gitblame_enabled then
+        init()
+        set_autocmds()
     end
 end
 
-return {
-    init = init,
-    setup = setup,
-    show_blame_info = show_blame_info,
-    schedule_show_info_display = schedule_show_info_display,
-    clear_virtual_text = clear_virtual_text,
-    load_blames = load_blames,
-    cleanup_file_data = cleanup_file_data,
-    clear_files_data = clear_files_data,
-    handle_buf_enter = handle_buf_enter,
-    handle_text_changed = handle_text_changed,
-    handle_insert_leave = handle_insert_leave,
-    open_commit_url = open_commit_url,
-    open_file_url = open_file_url,
-    get_current_blame_text = get_current_blame_text,
-    is_blame_text_available = is_blame_text_available,
-    copy_sha_to_clipboard = copy_sha_to_clipboard,
-    copy_commit_url_to_clipboard = copy_commit_url_to_clipboard,
-    copy_file_url_to_clipboard = copy_file_url_to_clipboard,
-    disable = disable,
-}
+return M
