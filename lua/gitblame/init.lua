@@ -342,6 +342,7 @@ local function update_blame_text(blame_text)
 
     if should_display_virtual_text then
         current_line_length = utils.get_line_length()
+        local current_window = vim.fn.winnr()
         local monitor_width = vim.fn.winwidth(current_window)
 
         local options = {}
