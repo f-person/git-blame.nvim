@@ -2,15 +2,15 @@ local M = {}
 
 M.default_opts = {
     enabled = true,
-    ignored_filetypes = {},
-    virtual_text_column = nil,
     date_format = "%c",
     message_template = "  <author> • <date> • <summary>",
     message_when_not_committed = "  Not Committed Yet",
     highlight_group = "Comment",
-    delay = 0,
-    display_virtual_text = true,
     set_extmark_options = {},
+    display_virtual_text = true,
+    ignored_filetypes = {},
+    delay = 0,
+    virtual_text_column = nil,
 }
 
 M.setup = function(opts)
