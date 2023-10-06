@@ -238,8 +238,15 @@ local function get_blame_info(filepath, line1, line2)
     end
     if line2 and line1 ~= line2 then
         local blame_range = get_range_blame_info(filepath, line1, line2)
-        -- TODO find most recent blame
-        return blame_range[1]
+        ---@type BlameInfo|nil
+        local latest_blame = nil
+        for _, blame in ipairs(blame_range) do
+            if latest_blame == nil or blame.date > latest_blame.date then
+                latest_blame = blame
+            end
+        end
+
+        return latest_blame
     else
         return get_line_blame_info(filepath, line1)
     end
