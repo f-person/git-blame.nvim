@@ -503,8 +503,6 @@ end
 local function get_sha(callback, line1, line2)
     local filepath = utils.get_filepath()
     local line_number = line1 or utils.get_line_number()
-
-    -- TODO improve error handling for uncommitted lines
     local info = get_blame_info(filepath, line_number, line2)
 
     if info then
