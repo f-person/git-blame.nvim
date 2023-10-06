@@ -191,16 +191,12 @@ local function format_date(date)
     return os.date(format, date)
 end
 
----@param filepath string?
+---@param filepath string
 ---@param linenumber number
 ---@return BlameInfo|nil
-local function get_blame_info(filepath, linenumber)
-    if not filepath or not files_data[filepath] then
-        return nil
-    end
-
-    ---@type BlameInfo
-    local info
+local function get_line_blame_info(filepath, linenumber)
+    ---@type BlameInfo|nil
+    local info = nil
     for _, v in ipairs(files_data[filepath].blames) do
         if linenumber >= v.startline and linenumber <= v.endline then
             info = v
@@ -208,6 +204,45 @@ local function get_blame_info(filepath, linenumber)
         end
     end
     return info
+end
+
+---@param filepath string
+---@param line1 number
+---@param line2 number
+---@return table<number,BlameInfo>
+local function get_range_blame_info(filepath, line1, line2)
+    ---@type table<number,BlameInfo>
+    local range_info = {}
+
+    for _, blame in ipairs(files_data[filepath].blames) do
+        local blame_is_out_of_range =
+            (blame.startline < line1 and blame.endline < line1) or
+            (blame.startline > line2 and blame.endline > line2)
+
+        if not blame_is_out_of_range then
+            range_info[#range_info + 1] = blame
+        end
+    end
+    return range_info
+end
+
+---Return blame information for the given line. If given a visual selection,
+---return blame information for the most recently updated line.
+---@param filepath string|nil
+---@param line1 number
+---@param line2 number?
+---@return BlameInfo|nil
+local function get_blame_info(filepath, line1, line2)
+    if not filepath or not files_data[filepath] then
+        return nil
+    end
+    if line2 and line1 ~= line2 then
+        local blame_range = get_range_blame_info(filepath, line1, line2)
+        -- TODO find most recent blame
+        return blame_range[1]
+    else
+        return get_line_blame_info(filepath, line1)
+    end
 end
 
 ---@param info BlameInfo
@@ -453,19 +488,23 @@ local function handle_insert_leave()
     )
 end
 
----Returns SHA for the current line.
+---Returns SHA for the current line or SHA
+---for the latest commit in visual selection
 ---@param callback fun(sha: string)
-local function get_sha(callback)
+---@param line1 number?
+---@param line2 number?
+local function get_sha(callback, line1, line2)
     local filepath = utils.get_filepath()
-    local line_number = utils.get_line_number()
-    local info = get_blame_info(filepath, line_number)
+    local line_number = line1 or utils.get_line_number()
+
+    -- TODO improve error handling for uncommitted lines
+    local info = get_blame_info(filepath, line_number, line2)
 
     if info then
         callback(info.sha)
     else
         load_blames(function()
-            local new_info = get_blame_info(filepath, line_number)
-
+            local new_info = get_blame_info(filepath, line_number, line2)
             callback(new_info and new_info.sha or "")
         end)
     end
@@ -497,7 +536,7 @@ local function open_file_url(args)
 
     get_sha(function(sha)
         git.open_file_in_browser(filepath, sha, args.line1, args.line2)
-    end)
+    end, args.line1, args.line2)
 end
 
 local function get_current_blame_text()
@@ -529,7 +568,7 @@ local function copy_file_url_to_clipboard(args)
         git.get_file_url(filepath, sha, args.line1, args.line2, function(url)
             utils.copy_to_clipboard(url)
         end)
-    end)
+    end, args.line1, args.line2)
 end
 
 local function copy_commit_url_to_clipboard()
