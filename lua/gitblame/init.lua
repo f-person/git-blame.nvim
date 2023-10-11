@@ -643,7 +643,7 @@ end
 ---@field display_virtual_text boolean
 ---@field ignored_filetypes string[]
 ---@field delay number @Visual delay for displaying virtual text
----@field use_blame_commit_file_urls boolean Use the latest blame commit instead of the latest branch commit for file urls.
+---@field use_blame_commit_file_urls boolean? Use the latest blame commit instead of the latest branch commit for file urls.
 ---@field virtual_text_column nil|number @The column on which to start displaying virtual text
 
 ---@param opts SetupOptions
