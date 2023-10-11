@@ -495,6 +495,16 @@ local function handle_insert_leave()
     )
 end
 
+---Returns SHA for the latest commit to the current branch.
+---@param callback fun(sha: string)
+local function get_latest_sha(callback)
+    start_job("git rev-parse HEAD", {
+        on_stdout = function(data)
+            callback(data[1])
+        end,
+    })
+end
+
 ---Returns SHA for the current line or SHA
 ---for the latest commit in visual selection
 ---@param callback fun(sha: string)
@@ -539,9 +549,16 @@ local function open_file_url(args)
         return
     end
 
-    get_sha(function(sha)
+    ---@param sha string
+    local callback = function(sha)
         git.open_file_in_browser(filepath, sha, args.line1, args.line2)
-    end, args.line1, args.line2)
+    end
+
+    if vim.g.gitblame_use_blame_commit_file_urls then
+        get_sha(callback, args.line1, args.line2)
+    else
+        get_latest_sha(callback)
+    end
 end
 
 local function get_current_blame_text()
@@ -569,11 +586,18 @@ local function copy_file_url_to_clipboard(args)
         return
     end
 
-    get_sha(function(sha)
+    ---@param sha string
+    local callback = function(sha)
         git.get_file_url(filepath, sha, args.line1, args.line2, function(url)
             utils.copy_to_clipboard(url)
         end)
-    end, args.line1, args.line2)
+    end
+
+    if vim.g.gitblame_use_blame_commit_file_urls then
+        get_sha(callback, args.line1, args.line2)
+    else
+        get_latest_sha(callback)
+    end
 end
 
 local function copy_commit_url_to_clipboard()
@@ -619,6 +643,7 @@ end
 ---@field display_virtual_text boolean
 ---@field ignored_filetypes string[]
 ---@field delay number @Visual delay for displaying virtual text
+---@field use_blame_commit_file_urls boolean Use the latest blame commit instead of the latest branch commit for file urls.
 ---@field virtual_text_column nil|number @The column on which to start displaying virtual text
 
 ---@param opts SetupOptions
