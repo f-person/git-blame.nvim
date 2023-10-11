@@ -20,6 +20,7 @@ A git blame plugin for Neovim written in Lua
   - [Ignore by Filetype](#ignore-by-filetype)
   - [Visual delay for displaying the blame info](#visual-delay-for-displaying-the-blame-info)
   - [Start virtual text at column](#start-virtual-text-at-column)
+  - [Use blame commit file URLs](#use-blame-commit-file-urls)
 - [Commands](#commands)
   - [Open the commit URL in browser](#open-the-commit-url-in-browser)
   - [Enable/Disable git blame messages](#enabledisable-git-blame-messages)
@@ -218,6 +219,16 @@ Default: `v:null`
 
 ```vim
 let g:gitblame_virtual_text_column = 80
+```
+
+## Use blame commit file URLs
+
+By default the commands `GitBlameOpenFileURL` and `GitBlameCopyFileURL` open the current file at latest branch commit. If you would like to open these files at the latest blame commit (in other words, the commit marked by the blame), set this to true. For ranges, the blame selected will be the most recent blame from the range.
+
+Default: `false`
+
+```lua
+vim.g.gitblame_use_blame_commit_file_urls = true
 ```
 
 ## Commands
