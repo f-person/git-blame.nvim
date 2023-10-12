@@ -18,7 +18,7 @@ M.setup = function(opts)
     opts = vim.tbl_deep_extend("force", M.default_opts, opts)
 
     for key, value in pairs(opts) do
-        if vim.g["gitblame_" .. key] == nil then
+        if vim.g["gitblame_" .. key] == nil or M.default_opts[key] ~= value then
             vim.g["gitblame_" .. key] = value
         end
     end

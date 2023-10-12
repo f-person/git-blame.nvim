@@ -339,10 +339,7 @@ local function update_blame_text(blame_text)
     current_blame_text = blame_text
 
     local virt_text_column = nil
-    if
-        vim.g.gitblame_virtual_text_column
-        and utils.get_line_length() < vim.g.gitblame_virtual_text_column
-    then
+    if vim.g.gitblame_virtual_text_column and utils.get_line_length() < vim.g.gitblame_virtual_text_column then
         virt_text_column = vim.g.gitblame_virtual_text_column
     end
 
@@ -384,6 +381,10 @@ local function get_position_info()
 end
 
 local function show_blame_info()
+    if not vim.g.gitblame_enabled then
+        return
+    end
+
     local position_info = get_position_info()
 
     local filepath = position_info.filepath
@@ -634,13 +635,13 @@ local function set_autocmds()
     autocmd("BufDelete", { callback = cleanup_file_data, group = group })
 end
 
-M.disable = function()
-    if not vim.g.gitblame_enabled then
+M.disable = function(force)
+    if not vim.g.gitblame_enabled and not force then
         return
     end
 
     vim.g.gitblame_enabled = false
-    vim.api.nvim_del_augroup_by_name("gitblame")
+    pcall(vim.api.nvim_del_augroup_by_name, "gitblame")
     clear_all_extmarks()
     clear_files_data()
     last_position = {}
@@ -699,6 +700,8 @@ M.setup = function(opts)
     if vim.g.gitblame_enabled then
         init()
         set_autocmds()
+    else
+        M.disable(true)
     end
 end
 
