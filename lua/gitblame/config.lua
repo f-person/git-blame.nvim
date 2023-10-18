@@ -11,6 +11,7 @@ M.default_opts = {
     ignored_filetypes = {},
     delay = 0,
     virtual_text_column = nil,
+    use_blame_commit_file_urls = false,
 }
 
 M.setup = function(opts)
