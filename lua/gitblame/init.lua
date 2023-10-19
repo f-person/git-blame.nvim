@@ -343,7 +343,7 @@ local function update_blame_text(blame_text)
         virt_text_column = vim.g.gitblame_virtual_text_column
     end
 
-    if not vim.g.gitblame_display_virtual_text then
+    if vim.g.gitblame_display_virtual_text == false or vim.g.gitblame_display_virtual_text == 0 then
         return
     end
     local options = {
