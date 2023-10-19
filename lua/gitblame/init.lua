@@ -562,11 +562,11 @@ M.open_file_url = function(args)
     end
 end
 
-local function get_current_blame_text()
+M.get_current_blame_text = function()
     return current_blame_text
 end
 
-local function is_blame_text_available()
+M.is_blame_text_available = function()
     return current_blame_text ~= nil
 end
 
