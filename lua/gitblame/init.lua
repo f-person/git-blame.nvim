@@ -639,7 +639,7 @@ M.disable = function(force)
     if not vim.g.gitblame_enabled and not force then
         return
     end
-
+    current_blame_text = ""
     vim.g.gitblame_enabled = false
     pcall(vim.api.nvim_del_augroup_by_name, "gitblame")
     clear_all_extmarks()
