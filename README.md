@@ -326,6 +326,8 @@ require('lua-timeago').set_language(require('lua-timeago/languages/hy'))
 
 [![](https://contrib.rocks/image?repo=f-person/git-blame.nvim)](https://github.com/f-person/git-blame.nvim/graphs/contributors)
 
+Special kudos to [Sam Bossley](https://github.com/bossley9) for maintaining the plugin! <3
+
 Made with [contrib.rocks](https://contrib.rocks).
 
 ## Support
