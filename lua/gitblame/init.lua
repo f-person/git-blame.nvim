@@ -556,7 +556,7 @@ M.open_file_url = function(args)
     end
 
     if vim.g.gitblame_use_blame_commit_file_urls then
-        get_sha(callback, args.line1, args.line2)
+        M.get_sha(callback, args.line1, args.line2)
     else
         get_latest_sha(callback)
     end
@@ -595,7 +595,7 @@ M.copy_file_url_to_clipboard = function(args)
     end
 
     if vim.g.gitblame_use_blame_commit_file_urls then
-        get_sha(callback, args.line1, args.line2)
+        M.get_sha(callback, args.line1, args.line2)
     else
         get_latest_sha(callback)
     end
