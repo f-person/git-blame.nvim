@@ -639,7 +639,7 @@ M.disable = function(force)
     if not vim.g.gitblame_enabled and not force then
         return
     end
-    
+
     vim.g.gitblame_enabled = false
     pcall(vim.api.nvim_del_augroup_by_name, "gitblame")
     clear_all_extmarks()
@@ -698,7 +698,7 @@ M.setup = function(opts)
 
     create_cmds()
 
-    if vim.g.gitblame_enabled then
+    if vim.g.gitblame_enabled == 1 or vim.g.gitblame_enabled == true then
         init()
         set_autocmds()
     else
