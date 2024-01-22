@@ -64,7 +64,10 @@ end
 ---@param lines string[]
 local function process_blame_output(blames, filepath, lines)
     if not files_data[filepath] then
-        files_data[filepath] = {}
+        files_data[filepath] = {
+            blames = {},
+            git_repo_path = '',
+        }
     end
     ---@type BlameInfo
     local info
@@ -118,7 +121,10 @@ local function process_blame_output(blames, filepath, lines)
     end
 
     if not files_data[filepath] then
-        files_data[filepath] = {}
+        files_data[filepath] = {
+            blames = {},
+            git_repo_path = ''
+        }
     end
     files_data[filepath].blames = blames
 end
