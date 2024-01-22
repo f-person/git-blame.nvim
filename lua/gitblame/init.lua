@@ -99,13 +99,13 @@ local function process_blame_output(blames, filepath, lines)
                 info.author = author
             elseif line:match("^author%-time ") then
                 local text = line:gsub("^author%-time ", "")
-                info.date = text
+                info.date = tonumber(text) or os.time()
             elseif line:match("^committer ") then
                 local committer = line:gsub("^committer ", "")
                 info.committer = committer
             elseif line:match("^committer%-time ") then
                 local text = line:gsub("^committer%-time ", "")
-                info.committer_date = text
+                info.committer_date = tonumber(text) or os.time()
             elseif line:match("^summary ") then
                 local text = line:gsub("^summary ", "")
                 info.summary = text
@@ -181,15 +181,17 @@ local function check_uses_relative_date()
     return false
 end
 
----@param date osdate
+---@param date integer
 ---@return string
 local function format_date(date)
     local format = get_date_format()
     if check_uses_relative_date() then
         format = format:gsub("%%r", timeago.format(date))
     end
-
-    return os.date(format, date)
+    if format == '*t' then
+        return '*t'
+    end
+    return os.date(format, date) --[[@as string]]
 end
 
 ---@param filepath string
@@ -275,8 +277,8 @@ end
 ---@class BlameInfo
 ---@field author string
 ---@field committer string
----@field date osdate
----@field committer_date osdate
+---@field date integer
+---@field committer_date integer
 ---@field summary string
 ---@field sha string
 ---@field startline number
@@ -293,7 +295,7 @@ local function get_blame_text(filepath, info, callback)
         and info.author ~= "External file (--contents)"
         and info.author ~= "Not Committed Yet"
 
-    if is_info_commit then
+    if info and is_info_commit then
         info.author = info.author == current_author and "You" or info.author
         info.committer = info.committer == current_author and "You" or info.committer
 
