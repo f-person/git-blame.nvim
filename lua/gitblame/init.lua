@@ -569,7 +569,7 @@ M.get_current_blame_text = function()
 end
 
 M.is_blame_text_available = function()
-    return current_blame_text ~= nil
+    return current_blame_text ~= ''
 end
 
 M.copy_sha_to_clipboard = function()
@@ -647,7 +647,7 @@ M.disable = function(force)
     clear_all_extmarks()
     clear_files_data()
     last_position = {}
-    current_blame_text = nil
+    current_blame_text = ''
 end
 
 M.enable = function()
