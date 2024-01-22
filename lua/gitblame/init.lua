@@ -7,8 +7,12 @@ local M = {}
 ---@type integer
 local NAMESPACE_ID = vim.api.nvim_create_namespace("git-blame-virtual-text")
 
----@type table<string, string>
-local last_position = {}
+---@type PositionInfo
+local last_position = {
+    filepath = nil,
+    line = -1,
+    is_on_same_line = false,
+}
 
 ---@class GitInfo
 ---@field blames table<string, BlameInfo>
@@ -646,7 +650,11 @@ M.disable = function(force)
     pcall(vim.api.nvim_del_augroup_by_name, "gitblame")
     clear_all_extmarks()
     clear_files_data()
-    last_position = {}
+    last_position = {
+        filepath = nil,
+        line = -1,
+        is_on_same_line = false
+    }
     current_blame_text = ''
 end
 
