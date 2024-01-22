@@ -682,19 +682,19 @@ local create_cmds = function()
 end
 
 ---@class SetupOptions
----@field enabled boolean
----@field message_template string
----@field date_format string
----@field message_when_not_committed string
----@field highlight_group string
----@field gitblame_set_extmark_options object @See :h nvim_buf_set_extmark() to check what you can pass here
----@field display_virtual_text boolean
----@field ignored_filetypes string[]
----@field delay number @Visual delay for displaying virtual text
+---@field enabled? boolean
+---@field message_template string?
+---@field date_format string?
+---@field message_when_not_committed string?
+---@field highlight_group string?
+---@field gitblame_set_extmark_options table? @see vim.api.nvim_buf_set_extmark() to check what you can pass here
+---@field display_virtual_text boolean?
+---@field ignored_filetypes string[]?
+---@field delay number? Visual delay for displaying virtual text
 ---@field use_blame_commit_file_urls boolean? Use the latest blame commit instead of the latest branch commit for file urls.
----@field virtual_text_column nil|number @The column on which to start displaying virtual text
+---@field virtual_text_column number? The column on which to start displaying virtual text
 
----@param opts SetupOptions
+---@param opts SetupOptions?
 M.setup = function(opts)
     require("gitblame.config").setup(opts)
 

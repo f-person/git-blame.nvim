@@ -1,5 +1,6 @@
 local M = {}
 
+---@type SetupOptions
 M.default_opts = {
     enabled = true,
     date_format = "%c",
@@ -14,6 +15,7 @@ M.default_opts = {
     use_blame_commit_file_urls = false,
 }
 
+---@param opts SetupOptions?
 M.setup = function(opts)
     opts = opts or {}
     opts = vim.tbl_deep_extend("force", M.default_opts, opts)
