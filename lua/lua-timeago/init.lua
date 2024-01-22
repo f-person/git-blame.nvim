@@ -14,7 +14,7 @@ function M.set_language(new_language)
 
     assert(language and language.justnow)
     assert(language.minute and language.minute.singular and
-               language.minute.plural)
+        language.minute.plural)
     assert(language.hour and language.hour.singular and language.hour.plural)
     assert(language.day and language.day.singular and language.day.plural)
     assert(language.week and language.week.singular and language.week.plural)
@@ -26,7 +26,7 @@ end
 ---@return number
 local function round(num) return math.floor(num + 0.5) end
 
----@param time osdate
+---@param time integer
 ---@return string
 function M.format(time)
     local now = os.time()
@@ -66,7 +66,6 @@ function M.format(time)
     local diff_years = diff_days / 365.25
     if diff_years < 1.5 then return language.year.singular end
     return round(diff_years) .. ' ' .. language.year.plural
-
 end
 
 return M
