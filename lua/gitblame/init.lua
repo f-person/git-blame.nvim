@@ -26,7 +26,7 @@ local current_author
 ---@type boolean
 local need_update_after_horizontal_move = false
 
---- This shouldn't be used directly. Use `get_date_format` instead.
+---This shouldn't be used directly. Use `get_date_format` instead.
 ---@type boolean
 local date_format_has_relative_time
 
@@ -170,7 +170,7 @@ local function load_blames(callback)
     end)
 end
 
---- Checks if the date format contains a relative time placeholder.
+---Checks if the date format contains a relative time placeholder.
 ---@return boolean
 local function check_uses_relative_date()
     if date_format_has_relative_time then
