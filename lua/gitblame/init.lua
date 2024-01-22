@@ -16,7 +16,7 @@ local last_position = {
 
 ---@class GitInfo
 ---@field blames table<string, BlameInfo>
----@field git_repo_path string
+---@field git_repo_path string|nil
 
 ---@type table<string, GitInfo>
 local files_data = {}
@@ -63,12 +63,6 @@ end
 ---@param filepath string
 ---@param lines string[]
 local function process_blame_output(blames, filepath, lines)
-    if not files_data[filepath] then
-        files_data[filepath] = {
-            blames = {},
-            git_repo_path = '',
-        }
-    end
     ---@type BlameInfo
     local info
     for _, line in ipairs(lines) do
@@ -121,10 +115,7 @@ local function process_blame_output(blames, filepath, lines)
     end
 
     if not files_data[filepath] then
-        files_data[filepath] = {
-            blames = {},
-            git_repo_path = ''
-        }
+        files_data[filepath] = { blames = {} }
     end
     files_data[filepath].blames = blames
 end
