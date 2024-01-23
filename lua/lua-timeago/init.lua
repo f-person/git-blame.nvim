@@ -26,7 +26,7 @@ end
 ---@return number
 local function round(num) return math.floor(num + 0.5) end
 
----@param time integer
+---@param time timestamp
 ---@return string
 function M.format(time)
     local now = os.time()

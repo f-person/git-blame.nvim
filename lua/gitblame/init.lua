@@ -4,6 +4,8 @@ local start_job = utils.start_job
 local timeago = require("lua-timeago")
 local M = {}
 
+---@alias timestamp integer unix epoch representation of time
+
 ---@type integer
 local NAMESPACE_ID = vim.api.nvim_create_namespace("git-blame-virtual-text")
 
@@ -182,7 +184,7 @@ local function check_uses_relative_date()
     return false
 end
 
----@param date integer
+---@param date timestamp
 ---@return string
 local function format_date(date)
     local format = get_date_format()
@@ -278,8 +280,8 @@ end
 ---@class BlameInfo
 ---@field author string
 ---@field committer string
----@field date integer
----@field committer_date integer
+---@field date timestamp
+---@field committer_date timestamp
 ---@field summary string
 ---@field sha string
 ---@field startline number
