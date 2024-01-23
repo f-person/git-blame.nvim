@@ -16,7 +16,7 @@ local last_position = {
 
 ---@class GitInfo
 ---@field blames table<string, BlameInfo>
----@field git_repo_path string|nil
+---@field git_repo_path string?
 
 ---@type table<string, GitInfo>
 local files_data = {}
@@ -197,9 +197,9 @@ end
 
 ---@param filepath string
 ---@param linenumber number
----@return BlameInfo|nil
+---@return BlameInfo?
 local function get_line_blame_info(filepath, linenumber)
-    ---@type BlameInfo|nil
+    ---@type BlameInfo?
     local info = nil
     for _, v in ipairs(files_data[filepath].blames) do
         if linenumber >= v.startline and linenumber <= v.endline then
@@ -232,10 +232,10 @@ end
 
 ---Return blame information for the given line. If given a visual selection,
 ---return blame information for the most recently updated line.
----@param filepath string|nil
+---@param filepath string?
 ---@param line1 number
 ---@param line2 number?
----@return BlameInfo|nil
+---@return BlameInfo?
 local function get_blame_info(filepath, line1, line2)
     if not filepath or not files_data[filepath] then
         return nil
@@ -285,8 +285,8 @@ end
 ---@field startline number
 ---@field endline number
 
----@param info BlameInfo|nil
----@param callback fun(blame_text: string|nil)
+---@param info BlameInfo?
+---@param callback fun(blame_text: string?)
 local function get_blame_text(filepath, info, callback)
     local is_info_commit = info
         and info.author
@@ -332,7 +332,7 @@ local function get_blame_text(filepath, info, callback)
 end
 
 ---Updates `current_blame_text` and sets the virtual text if it should.
----@param blame_text string|nil
+---@param blame_text string?
 local function update_blame_text(blame_text)
     clear_virtual_text()
 
@@ -366,7 +366,7 @@ local function update_blame_text(blame_text)
 end
 
 ---@class PositionInfo
----@field filepath string|nil
+---@field filepath string?
 ---@field line integer
 ---@field is_on_same_line boolean
 
