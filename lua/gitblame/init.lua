@@ -631,8 +631,8 @@ local function set_autocmds()
     local autocmd = vim.api.nvim_create_autocmd
     local group = vim.api.nvim_create_augroup("gitblame", { clear = true })
 
-    autocmd("CursorMoved", { callback = schedule_show_info_display, group = group })
-    autocmd("CursorMovedI", { callback = clear_virtual_text, group = group })
+    autocmd("CursorHold", { callback = schedule_show_info_display, group = group })
+    autocmd("CursorHoldI", { callback = clear_virtual_text, group = group })
     autocmd("InsertEnter", { callback = clear_virtual_text, group = group })
     autocmd("TextChanged", { callback = handle_text_changed, group = group })
     autocmd("InsertLeave", { callback = handle_insert_leave, group = group })
