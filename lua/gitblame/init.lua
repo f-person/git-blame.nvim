@@ -191,8 +191,8 @@ local function format_date(date)
     if check_uses_relative_date() then
         format = format:gsub("%%r", timeago.format(date))
     end
-    if format == '*t' then
-        return '*t'
+    if format == "*t" then
+        return "*t"
     end
     return os.date(format, date) --[[@as string]]
 end
@@ -221,9 +221,8 @@ local function get_range_blame_info(filepath, line1, line2)
     local range_info = {}
 
     for _, blame in ipairs(files_data[filepath].blames) do
-        local blame_is_out_of_range =
-            (blame.startline < line1 and blame.endline < line1) or
-            (blame.startline > line2 and blame.endline > line2)
+        local blame_is_out_of_range = (blame.startline < line1 and blame.endline < line1)
+            or (blame.startline > line2 and blame.endline > line2)
 
         if not blame_is_out_of_range then
             range_info[#range_info + 1] = blame
@@ -572,7 +571,7 @@ M.get_current_blame_text = function()
 end
 
 M.is_blame_text_available = function()
-    return current_blame_text ~= ''
+    return current_blame_text ~= ""
 end
 
 M.copy_sha_to_clipboard = function()
@@ -627,12 +626,95 @@ local function clear_all_extmarks()
     end
 end
 
+-- debounce function
+--- @param func function the function which will be wrapped
+--- @param delay  integer time, millisecond
+local debounce = function(func, delay)
+    local timer = nil
+    return function(...)
+        local args = { ... }
+        if timer then
+            timer:stop()
+            timer = nil
+        end
+
+        timer = vim.defer_fn(function()
+            func(unpack(args))
+            timer = nil
+        end, delay)
+    end
+end
+
+-- this function is uesed to verify the config info for debounce
+--- @return boolean
+local verify_debounce_info = function()
+    if
+        vim.g.gitblame_schedule_event
+        and vim.g.gitblame_schedule_event ~= "CursorMoved"
+        and vim.g.gitblame_schedule_event ~= "CursorHold"
+    then
+        vim.notify(
+            string.format("event is error: %s, it just can be CursorMoved or CursorHold", vim.g.gitblame_schedule_event),
+            vim.log.levels.ERROR,
+            {}
+        )
+        return false
+    end
+    if
+        vim.g.gitblame_clear_event
+        and vim.g.gitblame_clear_event ~= "CursorMovedI"
+        and vim.g.gitblame_clear_event ~= "CursorHoldI"
+    then
+        vim.notify(
+            string.format("event is error: %s, it just can be CursorMoved or CursorHold", vim.g.gitblame_clear_event),
+            vim.log.levels.ERROR,
+            {}
+        )
+        return false
+    end
+
+    if
+        vim.g.gitblame_debounce_delay
+        and (type(vim.g.gitblame_debounce_delay) ~= "number" or vim.g.gitblame_debounce_delay < 0)
+    then
+        vim.notify(
+            string.format("debounce_delay is error: %s, it just can be number", vim.g.gitblame_debounce_delay),
+            vim.log.levels.ERROR,
+            {}
+        )
+        return false
+    end
+
+    return true
+end
+
 local function set_autocmds()
     local autocmd = vim.api.nvim_create_autocmd
     local group = vim.api.nvim_create_augroup("gitblame", { clear = true })
 
-    autocmd("CursorHold", { callback = schedule_show_info_display, group = group })
-    autocmd("CursorHoldI", { callback = clear_virtual_text, group = group })
+    if not verify_debounce_info() then
+        return
+    end
+
+    --- @type "CursorMoved" | "CursorHold"
+    local event_schedule = vim.g.gitblame_schedule_event or "CursorMoved"
+    --- @type "CursorMovedI" | "CursorHoldI"
+    local event_clear = vim.g.gitblame_clear_event or "CursorMovedI"
+
+    --- @type function
+    local func_schedule = schedule_show_info_display
+    if event_schedule == "CursorMoved" then
+        func_schedule = debounce(schedule_show_info_display, math.floor(vim.g.gitblame_debounce_delay or 250))
+    end
+
+    --- @type function
+    local func_clear = clear_virtual_text
+    if event_clear == "CursorMovedI" then
+        func_clear = debounce(clear_virtual_text, math.floor(vim.g.gitblame_debounce_delay or 250))
+    end
+
+    autocmd(event_schedule, { callback = func_schedule, group = group })
+    autocmd(event_clear, { callback = func_clear, group = group })
     autocmd("InsertEnter", { callback = clear_virtual_text, group = group })
     autocmd("TextChanged", { callback = handle_text_changed, group = group })
     autocmd("InsertLeave", { callback = handle_insert_leave, group = group })
@@ -652,9 +734,9 @@ M.disable = function(force)
     last_position = {
         filepath = nil,
         line = -1,
-        is_on_same_line = false
+        is_on_same_line = false,
     }
-    current_blame_text = ''
+    current_blame_text = ""
 end
 
 M.enable = function()
