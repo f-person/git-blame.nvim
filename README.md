@@ -20,6 +20,7 @@ A git blame plugin for Neovim written in Lua
   - [Ignore by Filetype](#ignore-by-filetype)
   - [Visual delay for displaying the blame info](#visual-delay-for-displaying-the-blame-info)
   - [Start virtual text at column](#start-virtual-text-at-column)
+  - [Better Performance](#better-performance)
   - [Use blame commit file URLs](#use-blame-commit-file-urls)
 - [Commands](#commands)
   - [Open the commit URL in browser](#open-the-commit-url-in-browser)
@@ -221,7 +222,31 @@ Default: `v:null`
 let g:gitblame_virtual_text_column = 80
 ```
 
-## Use blame commit file URLs
+### Better Performance
+
+If you want better performance (e.g. in particularly large projects) you can refer here
+
+`g:gitblame_schedule_event`
+
+the event used for schedule
+
+value: `CursorMoved`|`CursorHold` 
+
+default is `CursorMoved`, `CursorHold` will be better performance, but the response will be slightly slower
+
+`g:gitblame_clear_event`
+
+the evene used for clear virtual text
+
+value: `CursorMovedI`|`CursorHoldI`
+
+default is `CursorMovedI`, `CursorHoldI` will be better performance, but the response will be slightly slower
+
+`g:gitblame_debounce_delay`
+
+the debounce delay time, value should be number, default value is `250`.
+
+### Use blame commit file URLs
 
 By default the commands `GitBlameOpenFileURL` and `GitBlameCopyFileURL` open the current file at latest branch commit. If you would like to open these files at the latest blame commit (in other words, the commit marked by the blame), set this to true. For ranges, the blame selected will be the most recent blame from the range.
 
