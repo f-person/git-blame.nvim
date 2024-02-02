@@ -423,18 +423,11 @@ local function schedule_show_info_display()
         end
     end
 
-    ---@type integer
-    local delay = vim.g.gitblame_delay
-
-    if not delay or delay == 0 or position_info.is_on_same_line then
+    if position_info.is_on_same_line then
         show_blame_info()
     else
-        if delay_timer and vim.loop.is_active(delay_timer) then
-            delay_timer:stop()
-            delay_timer:close()
-        end
         clear_virtual_text()
-        delay_timer = vim.defer_fn(show_blame_info, delay)
+        show_blame_info()
     end
 
     last_position.filepath = position_info.filepath
@@ -648,11 +641,7 @@ end
 -- this function is uesed to verify the config info for debounce
 --- @return boolean
 local verify_debounce_info = function()
-    if
-        vim.g.gitblame_schedule_event
-        and vim.g.gitblame_schedule_event ~= "CursorMoved"
-        and vim.g.gitblame_schedule_event ~= "CursorHold"
-    then
+    if vim.g.gitblame_schedule_event ~= "CursorMoved" and vim.g.gitblame_schedule_event ~= "CursorHold" then
         vim.notify(
             string.format("event is error: %s, it just can be CursorMoved or CursorHold", vim.g.gitblame_schedule_event),
             vim.log.levels.ERROR,
@@ -660,11 +649,7 @@ local verify_debounce_info = function()
         )
         return false
     end
-    if
-        vim.g.gitblame_clear_event
-        and vim.g.gitblame_clear_event ~= "CursorMovedI"
-        and vim.g.gitblame_clear_event ~= "CursorHoldI"
-    then
+    if vim.g.gitblame_clear_event ~= "CursorMovedI" and vim.g.gitblame_clear_event ~= "CursorHoldI" then
         vim.notify(
             string.format("event is error: %s, it just can be CursorMoved or CursorHold", vim.g.gitblame_clear_event),
             vim.log.levels.ERROR,
@@ -673,12 +658,9 @@ local verify_debounce_info = function()
         return false
     end
 
-    if
-        vim.g.gitblame_debounce_delay
-        and (type(vim.g.gitblame_debounce_delay) ~= "number" or vim.g.gitblame_debounce_delay < 0)
-    then
+    if type(vim.g.gitblame_delay) ~= "number" or vim.g.gitblame_delay < 0 then
         vim.notify(
-            string.format("debounce_delay is error: %s, it just can be number", vim.g.gitblame_debounce_delay),
+            string.format("delay is error: %s, it just can be number", vim.g.gitblame_delay),
             vim.log.levels.ERROR,
             {}
         )
@@ -697,20 +679,20 @@ local function set_autocmds()
     end
 
     --- @type "CursorMoved" | "CursorHold"
-    local event_schedule = vim.g.gitblame_schedule_event or "CursorMoved"
+    local event_schedule = vim.g.gitblame_schedule_event
     --- @type "CursorMovedI" | "CursorHoldI"
-    local event_clear = vim.g.gitblame_clear_event or "CursorMovedI"
+    local event_clear = vim.g.gitblame_clear_event
 
     --- @type function
     local func_schedule = schedule_show_info_display
     if event_schedule == "CursorMoved" then
-        func_schedule = debounce(schedule_show_info_display, math.floor(vim.g.gitblame_debounce_delay or 250))
+        func_schedule = debounce(schedule_show_info_display, math.floor(vim.g.gitblame_delay))
     end
 
     --- @type function
     local func_clear = clear_virtual_text
     if event_clear == "CursorMovedI" then
-        func_clear = debounce(clear_virtual_text, math.floor(vim.g.gitblame_debounce_delay or 250))
+        func_clear = debounce(clear_virtual_text, math.floor(vim.g.gitblame_delay))
     end
 
     autocmd(event_schedule, { callback = func_schedule, group = group })

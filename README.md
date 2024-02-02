@@ -204,7 +204,7 @@ The delay in milliseconds after which the blame info will be displayed.
 
 Note that this doesn't affect the performance of the plugin.
 
-Default: `0`
+Default: `250`
 
 ```vim
 let g:gitblame_delay = 1000 " 1 second
@@ -241,10 +241,6 @@ the evene used for clear virtual text
 value: `CursorMovedI`|`CursorHoldI`
 
 default is `CursorMovedI`, `CursorHoldI` will be better performance, but the response will be slightly slower
-
-`g:gitblame_debounce_delay`
-
-the debounce delay time, value should be number, default value is `250`.
 
 ### Use blame commit file URLs
 
