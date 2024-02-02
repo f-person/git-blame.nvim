@@ -10,9 +10,11 @@ M.default_opts = {
     set_extmark_options = {},
     display_virtual_text = true,
     ignored_filetypes = {},
-    delay = 0,
+    delay = 250,
     virtual_text_column = nil,
     use_blame_commit_file_urls = false,
+    schedule_event = "CursorMoved",
+    clear_event = "CursorMovedI",
 }
 
 ---@param opts SetupOptions?
