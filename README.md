@@ -224,15 +224,13 @@ let g:gitblame_virtual_text_column = 80
 
 ### Better Performance
 
-If you want better performance (e.g. in particularly large projects) you can refer here
+If you are experiencing poor performance (e.g. in particularly large projects) you can use `CursorHold` and `CursorHoldI` instead of the default `CursorMoved` and `CursorMovedI` autocommands to limit the frequency of events being run.
 
-`g:gitblame_schedule_event`
+`g:gitblame_schedule_event` is used for scheduling events. See [CursorMoved](https://neovim.io/doc/user/autocmd.html#CursorMoved) and [CursorHold](https://neovim.io/doc/user/autocmd.html#CursorHold).
 
-the event used for schedule
+Default: `CursorMoved`
 
-value: `CursorMoved`|`CursorHold` 
-
-default is `CursorMoved`, `CursorHold` will be better performance, but the response will be slightly slower
+options: `CursorMoved`|`CursorHold` 
 
 `g:gitblame_clear_event`
 
