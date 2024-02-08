@@ -232,13 +232,11 @@ Default: `CursorMoved`
 
 options: `CursorMoved`|`CursorHold` 
 
-`g:gitblame_clear_event`
+`g:gitblame_clear_event` is used for clearing virtual text. See [CursorMovedI](https://neovim.io/doc/user/autocmd.html#CursorMovedI) and [CursorHoldI](https://neovim.io/doc/user/autocmd.html#CursorHoldI).
 
-the evene used for clear virtual text
+Default: `CursorMovedI`
 
-value: `CursorMovedI`|`CursorHoldI`
-
-default is `CursorMovedI`, `CursorHoldI` will be better performance, but the response will be slightly slower
+options: `CursorMovedI`|`CursorHoldI`
 
 ### Use blame commit file URLs
 
