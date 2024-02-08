@@ -82,7 +82,7 @@ end
 
 --@return number of tabs and tabstop in string
 function M.get_tabs_len_in_string(s)
-    local _, tab_count = s:gsub("\t","")
+    local _, tab_count = s:gsub("\t", "")
     return tab_count, vim.api.nvim_buf_get_option(0, "tabstop")
 end
 
@@ -141,7 +141,7 @@ function M.make_local_command(command)
 end
 
 ---@generic T
----@param orig T 
+---@param orig T
 ---@return T
 function M.shallowcopy(orig)
     local orig_type = type(orig)
@@ -155,6 +155,25 @@ function M.shallowcopy(orig)
         copy = orig
     end
     return copy
+end
+
+-- debounce function
+--- @param func function the function which will be wrapped
+--- @param delay  integer time, millisecond
+function M.debounce(func, delay)
+    local timer = nil
+    return function(...)
+        local args = { ... }
+        if timer then
+            timer:stop()
+            timer = nil
+        end
+
+        timer = vim.defer_fn(function()
+            func(unpack(args))
+            timer = nil
+        end, delay)
+    end
 end
 
 return M

@@ -619,25 +619,6 @@ local function clear_all_extmarks()
     end
 end
 
--- debounce function
---- @param func function the function which will be wrapped
---- @param delay  integer time, millisecond
-local debounce = function(func, delay)
-    local timer = nil
-    return function(...)
-        local args = { ... }
-        if timer then
-            timer:stop()
-            timer = nil
-        end
-
-        timer = vim.defer_fn(function()
-            func(unpack(args))
-            timer = nil
-        end, delay)
-    end
-end
-
 -- this function is uesed to verify the config info for debounce
 --- @return boolean
 local verify_debounce_info = function()
@@ -686,13 +667,13 @@ local function set_autocmds()
     --- @type function
     local func_schedule = schedule_show_info_display
     if event_schedule == "CursorMoved" then
-        func_schedule = debounce(schedule_show_info_display, math.floor(vim.g.gitblame_delay))
+        func_schedule = utils.debounce(schedule_show_info_display, math.floor(vim.g.gitblame_delay))
     end
 
     --- @type function
     local func_clear = clear_virtual_text
     if event_clear == "CursorMovedI" then
-        func_clear = debounce(clear_virtual_text, math.floor(vim.g.gitblame_delay))
+        func_clear = utils.debounce(clear_virtual_text, math.floor(vim.g.gitblame_delay))
     end
 
     autocmd(event_schedule, { callback = func_schedule, group = group })
