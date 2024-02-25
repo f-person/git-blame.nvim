@@ -3,9 +3,11 @@ local M = {}
 function __FILE__()
     return debug.getinfo(3, "S").source
 end
+
 function __LINE__()
     return debug.getinfo(3, "l").currentline
 end
+
 function __FUNC__()
     return debug.getinfo(3, "n").name
 end
@@ -158,8 +160,8 @@ function M.shallowcopy(orig)
 end
 
 -- debounce function
---- @param func function the function which will be wrapped
---- @param delay  integer time, millisecond
+---@param func function the function which will be wrapped
+---@param delay  integer time, millisecond
 function M.debounce(func, delay)
     local timer = nil
     return function(...)
