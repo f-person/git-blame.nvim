@@ -39,9 +39,6 @@ local date_format_has_relative_time
 ---@type string
 local current_blame_text
 
----@type table timer luv timer object
-local delay_timer
-
 ---@return string
 local function get_date_format()
     return vim.g.gitblame_date_format
@@ -527,7 +524,7 @@ M.open_commit_url = function()
     M.get_sha(function(sha)
         local empty_sha = "0000000000000000000000000000000000000000"
 
-        if sha and sha ~= empty_sha then
+        if sha and sha ~= "" and sha ~= empty_sha then
             git.open_commit_in_browser(sha)
         else
             utils.log("Unable to open commit URL as SHA is empty")
@@ -569,7 +566,7 @@ end
 
 M.copy_sha_to_clipboard = function()
     M.get_sha(function(sha)
-        if sha then
+        if sha and sha ~= "" then
             utils.copy_to_clipboard(sha)
         else
             utils.log("Unable to copy SHA")
@@ -600,7 +597,7 @@ end
 
 M.copy_commit_url_to_clipboard = function()
     M.get_sha(function(sha)
-        if sha then
+        if sha and sha ~= "" then
             git.get_remote_url(function(remote_url)
                 local commit_url = git.get_commit_url(sha, remote_url)
                 utils.copy_to_clipboard(commit_url)

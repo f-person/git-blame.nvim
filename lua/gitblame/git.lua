@@ -74,7 +74,7 @@ end
 ---@return string
 local function get_file_url(remote_url, branch, filepath, line1, line2)
     local repo_url = get_repo_url(remote_url)
-    local isSrcHut = repo_url:find('git.sr.ht')
+    local isSrcHut = repo_url:find("git.sr.ht")
 
     local file_path = "/blob/" .. branch .. "/" .. filepath
     if isSrcHut then
@@ -87,9 +87,9 @@ local function get_file_url(remote_url, branch, filepath, line1, line2)
         return repo_url .. file_path .. "#L" .. line1
     else
         if isSrcHut then
-            return repo_url .. file_path .. "#L" .. line1 .. '-' .. line2
+            return repo_url .. file_path .. "#L" .. line1 .. "-" .. line2
         end
-        return repo_url .. file_path .. "#L" .. line1 .. '-L' .. line2
+        return repo_url .. file_path .. "#L" .. line1 .. "-L" .. line2
     end
 end
 
@@ -118,6 +118,11 @@ end
 ---@param callback fun(url: string)
 function M.get_file_url(filepath, sha, line1, line2, callback)
     M.get_repo_root(function(root)
+        if root == "" then
+            callback(filepath)
+            return
+        end
+
         local relative_filepath = string.sub(filepath, #root + 2)
 
         if sha == nil then
