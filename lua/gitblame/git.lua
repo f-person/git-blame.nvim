@@ -118,6 +118,8 @@ end
 ---@param callback fun(url: string)
 function M.get_file_url(filepath, sha, line1, line2, callback)
     M.get_repo_root(function(root)
+        -- if outside a repository, return the filepath
+        -- so we can still copy the path or open the file
         if root == "" then
             callback(filepath)
             return
