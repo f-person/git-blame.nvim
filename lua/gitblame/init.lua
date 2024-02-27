@@ -500,6 +500,13 @@ local function get_latest_sha(callback)
     })
 end
 
+---@param sha string?
+---@return boolean
+local function is_valid_sha(sha)
+    local empty_sha = "0000000000000000000000000000000000000000"
+    return sha ~= nil and sha ~= "" and sha ~= empty_sha
+end
+
 ---Returns SHA for the current line or SHA
 ---for the latest commit in visual selection
 ---@param callback fun(sha: string)
@@ -522,9 +529,7 @@ end
 
 M.open_commit_url = function()
     M.get_sha(function(sha)
-        local empty_sha = "0000000000000000000000000000000000000000"
-
-        if sha and sha ~= "" and sha ~= empty_sha then
+        if is_valid_sha(sha) then
             git.open_commit_in_browser(sha)
         else
             utils.log("Unable to open commit URL as SHA is empty")
@@ -566,7 +571,7 @@ end
 
 M.copy_sha_to_clipboard = function()
     M.get_sha(function(sha)
-        if sha and sha ~= "" then
+        if is_valid_sha(sha) then
             utils.copy_to_clipboard(sha)
         else
             utils.log("Unable to copy SHA")
@@ -597,7 +602,7 @@ end
 
 M.copy_commit_url_to_clipboard = function()
     M.get_sha(function(sha)
-        if sha and sha ~= "" then
+        if is_valid_sha(sha) then
             git.get_remote_url(function(remote_url)
                 local commit_url = git.get_commit_url(sha, remote_url)
                 utils.copy_to_clipboard(commit_url)
