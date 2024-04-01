@@ -159,23 +159,4 @@ function M.shallowcopy(orig)
     return copy
 end
 
--- debounce function
----@param func function the function which will be wrapped
----@param delay  integer time, millisecond
-function M.debounce(func, delay)
-    local timer = nil
-    return function(...)
-        local args = { ... }
-        if timer then
-            timer:stop()
-            timer = nil
-        end
-
-        timer = vim.defer_fn(function()
-            func(unpack(args))
-            timer = nil
-        end, delay)
-    end
-end
-
 return M

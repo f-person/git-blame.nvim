@@ -58,6 +58,29 @@ local function clear_virtual_text()
     vim.api.nvim_buf_del_extmark(0, NAMESPACE_ID, 1)
 end
 
+-- A luv timer object. Used exclusively for debouncing in `debounce`.
+local debounce_timer = nil
+
+-- Debounces `func` by `delay` milliseconds.
+-- **IMPORTANT:** This refers to a single timer object (`debounce_timer`) for the debounce; beware!
+---@param func function the function which will be wrapped
+---@param delay integer time in milliseconds
+---@return function debounced_func the debounced function which you can execute
+local function debounce(func, delay)
+    return function(...)
+        local args = { ... }
+        if debounce_timer then
+            debounce_timer:stop()
+            debounce_timer = nil
+        end
+
+        debounce_timer = vim.defer_fn(function()
+            func(unpack(args))
+            debounce_timer = nil
+        end, delay)
+    end
+end
+
 ---@param blames table[]
 ---@param filepath string
 ---@param lines string[]
@@ -283,8 +306,9 @@ end
 ---@field startline number
 ---@field endline number
 
+---@param filepath string
 ---@param info BlameInfo?
----@param callback fun(blame_text: string?)
+---@param callback fun(blame_text: string|nil)
 local function get_blame_text(filepath, info, callback)
     local is_info_commit = info
         and info.author
@@ -621,61 +645,79 @@ local function clear_all_extmarks()
     end
 end
 
--- this function is uesed to verify the config info for debounce
---- @return boolean
-local verify_debounce_info = function()
-    if vim.g.gitblame_schedule_event ~= "CursorMoved" and vim.g.gitblame_schedule_event ~= "CursorHold" then
-        vim.notify(
-            string.format("event is error: %s, it just can be CursorMoved or CursorHold", vim.g.gitblame_schedule_event),
-            vim.log.levels.ERROR,
-            {}
+-- Validates the `parameter_name` against `available_values`. Returns an error message
+-- if `parameter_name` doesn't match `available_values`.
+--
+---@param parameter_name string
+---@param available_values object[]
+---@return string|nil
+local function validate_enum_parameter(parameter_name, available_values)
+    local current_value = vim.g[parameter_name]
+
+    if not vim.tbl_contains(available_values, current_value) then
+        return string.format(
+            "Invalid value for `%s`: %s. Available values are %s",
+            parameter_name,
+            current_value,
+            vim.inspect(available_values)
         )
-        return false
     end
-    if vim.g.gitblame_clear_event ~= "CursorMovedI" and vim.g.gitblame_clear_event ~= "CursorHoldI" then
-        vim.notify(
-            string.format("event is error: %s, it just can be CursorMoved or CursorHold", vim.g.gitblame_clear_event),
-            vim.log.levels.ERROR,
-            {}
-        )
-        return false
-    end
+end
+
+-- Verifies the debounce configuration and displays an error message if it is invalid.
+-- Returns `true` if the configuration is valid, `false` otherwise.
+--
+---@return boolean
+local function verify_debounce_configuration()
+    local error_message = validate_enum_parameter("gitblame_schedule_event", { "CursorMoved", "CursorHold" })
+        or validate_enum_parameter("gitblame_clear_event", { "CursorMovedI", "CursorHoldI" })
 
     if type(vim.g.gitblame_delay) ~= "number" or vim.g.gitblame_delay < 0 then
-        vim.notify(
-            string.format("delay is error: %s, it just can be number", vim.g.gitblame_delay),
-            vim.log.levels.ERROR,
-            {}
-        )
-        return false
+        error_message =
+            string.format("Invald value for `gitblame_delay`: %s. It should be a positive number", vim.g.gitblame_delay)
     end
 
-    return true
+    if error_message ~= nil then
+        vim.notify(error_message, vim.log.levels.ERROR, {})
+    end
+
+    return error_message == nil
+end
+
+---@type function
+local function maybe_clear_virtual_text_and_schedule_info_display()
+    local position_info = get_position_info()
+
+    if not position_info.is_on_same_line and not need_update_after_horizontal_move then
+        clear_virtual_text()
+    end
+
+    debounce(schedule_show_info_display, math.floor(500))()
 end
 
 local function set_autocmds()
     local autocmd = vim.api.nvim_create_autocmd
     local group = vim.api.nvim_create_augroup("gitblame", { clear = true })
 
-    if not verify_debounce_info() then
+    if not verify_debounce_configuration() then
         return
     end
 
-    --- @type "CursorMoved" | "CursorHold"
+    ---@type "CursorMoved" | "CursorHold"
     local event_schedule = vim.g.gitblame_schedule_event
-    --- @type "CursorMovedI" | "CursorHoldI"
+    ---@type "CursorMovedI" | "CursorHoldI"
     local event_clear = vim.g.gitblame_clear_event
 
-    --- @type function
+    ---@type function
     local func_schedule = schedule_show_info_display
     if event_schedule == "CursorMoved" then
-        func_schedule = utils.debounce(schedule_show_info_display, math.floor(vim.g.gitblame_delay))
+        func_schedule = maybe_clear_virtual_text_and_schedule_info_display
     end
 
-    --- @type function
+    ---@type function
     local func_clear = clear_virtual_text
     if event_clear == "CursorMovedI" then
-        func_clear = utils.debounce(clear_virtual_text, math.floor(vim.g.gitblame_delay))
+        func_clear = debounce(clear_virtual_text, math.floor(vim.g.gitblame_delay))
     end
 
     autocmd(event_schedule, { callback = func_schedule, group = group })
