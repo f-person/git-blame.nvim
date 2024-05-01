@@ -30,6 +30,26 @@ local function get_commit_path(sha, remote_url)
     return "/commit/" .. sha
 end
 
+---@param url string
+---@return string
+local function get_azure_url(url)
+
+    -- HTTPS has a different URL format
+    local org, project, repo = string.match(url, "(.*)/(.*)/_git/(.*)")
+    if org and project and repo then
+        return 'https://dev.azure.com/' .. org .. "/" .. project .. "/_git/" .. repo
+    end
+
+    org, project, repo = string.match(url, "(.*)/(.*)/(.*)")
+
+    if org and project and repo then
+        return 'https://dev.azure.com/' .. org .. "/" .. project .. "/_git/" .. repo
+    end
+
+    return url
+end
+
+
 ---@param remote_url string
 ---@return string
 local function get_repo_url(remote_url)
@@ -38,12 +58,22 @@ local function get_repo_url(remote_url)
         return "https://" .. domain .. "/" .. path
     end
 
-    local url = string.match(remote_url, ".*git%@(.*)%.git")
+    local url = string.match(remote_url, ".*git@*ssh.dev.azure.com:v3/(.*)")
+    if url then
+        return get_azure_url(url)
+    end
+
+    local https_url = string.match(remote_url, ".*@dev.azure.com/(.*)")
+    if https_url then
+        return get_azure_url(https_url)
+    end
+
+    url = string.match(remote_url, ".*git%@(.*)%.git")
     if url then
         return "https://" .. url
     end
 
-    local https_url = string.match(remote_url, "(https%:%/%/.*)%.git")
+    https_url = string.match(remote_url, "(https%:%/%/.*)%.git")
     if https_url then
         return https_url
     end
@@ -75,20 +105,34 @@ end
 local function get_file_url(remote_url, branch, filepath, line1, line2)
     local repo_url = get_repo_url(remote_url)
     local isSrcHut = repo_url:find("git.sr.ht")
+    local isAzure = repo_url:find("dev.azure.com")
 
     local file_path = "/blob/" .. branch .. "/" .. filepath
     if isSrcHut then
         file_path = "/tree/" .. branch .. "/" .. filepath
     end
+    if isAzure then
+        -- Can't use branch here since the URL wouldn't work in cases it's a commit sha
+        file_path = "?path=%2F" .. filepath
+    end
 
     if line1 == nil then
         return repo_url .. file_path
     elseif line2 == nil or line1 == line2 then
+        if isAzure then
+            return repo_url .. file_path .. "&line=" .. line1 .. "&lineEnd=" .. line1 + 1 .. "&lineStartColumn=1&lineEndColumn=1&lineStyle=plain&_a=contents"
+        end
+
         return repo_url .. file_path .. "#L" .. line1
     else
         if isSrcHut then
             return repo_url .. file_path .. "#L" .. line1 .. "-" .. line2
         end
+
+        if isAzure then
+            return repo_url .. file_path .. "&line=" .. line1 .. "&lineEnd=" .. line2 + 1 .. "&lineStartColumn=1&lineEndColumn=1&lineStyle=plain&_a=contents"
+        end
+
         return repo_url .. file_path .. "#L" .. line1 .. "-L" .. line2
     end
 end
