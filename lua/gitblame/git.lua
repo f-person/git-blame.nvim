@@ -49,7 +49,6 @@ local function get_azure_url(url)
     return url
 end
 
-
 ---@param remote_url string
 ---@return string
 local function get_repo_url(remote_url)
