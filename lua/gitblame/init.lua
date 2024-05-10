@@ -566,7 +566,7 @@ M.get_current_blame_text = function()
 end
 
 M.is_blame_text_available = function()
-    return current_blame_text ~= ""
+    return current_blame_text and current_blame_text ~= ""
 end
 
 M.copy_sha_to_clipboard = function()
