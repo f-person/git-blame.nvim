@@ -41,7 +41,6 @@ local function get_azure_url(url)
     end
 
     org, project, repo = string.match(url, "(.*)/(.*)/(.*)")
-
     if org and project and repo then
         return 'https://dev.azure.com/' .. org .. "/" .. project .. "/_git/" .. repo
     end
@@ -119,7 +118,7 @@ local function get_file_url(remote_url, branch, filepath, line1, line2)
         return repo_url .. file_path
     elseif line2 == nil or line1 == line2 then
         if isAzure then
-            return repo_url .. file_path .. "&line=" .. line1 .. "&lineEnd=" .. line1 + 1 .. "&lineStartColumn=1&lineEndColumn=1&lineStyle=plain&_a=contents"
+            return repo_url .. file_path .. "&line=" .. line1 .. "&lineEnd=" .. line1 + 1 .. "&lineStartColumn=1&lineEndColumn=1"
         end
 
         return repo_url .. file_path .. "#L" .. line1
@@ -129,7 +128,7 @@ local function get_file_url(remote_url, branch, filepath, line1, line2)
         end
 
         if isAzure then
-            return repo_url .. file_path .. "&line=" .. line1 .. "&lineEnd=" .. line2 + 1 .. "&lineStartColumn=1&lineEndColumn=1&lineStyle=plain&_a=contents"
+            return repo_url .. file_path .. "&line=" .. line1 .. "&lineEnd=" .. line2 + 1 .. "&lineStartColumn=1&lineEndColumn=1"
         end
 
         return repo_url .. file_path .. "#L" .. line1 .. "-L" .. line2
