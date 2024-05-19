@@ -56,7 +56,7 @@ local function get_repo_url(remote_url)
         return "https://" .. domain .. "/" .. path
     end
 
-    local url = string.match(remote_url, ".*git@*ssh.dev.azure.com:v3/(.*)")
+    local url = string.match(remote_url, ".*git@*ssh.dev.azure.com:v[0-9]/(.*)")
     if url then
         return get_azure_url(url)
     end
