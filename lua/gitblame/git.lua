@@ -33,7 +33,6 @@ end
 ---@param url string
 ---@return string
 local function get_azure_url(url)
-
     -- HTTPS has a different URL format
     local org, project, repo = string.match(url, "(.*)/(.*)/_git/(.*)")
     if org and project and repo then
