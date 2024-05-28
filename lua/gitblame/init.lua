@@ -692,7 +692,7 @@ local function maybe_clear_virtual_text_and_schedule_info_display()
         clear_virtual_text()
     end
 
-    debounce(schedule_show_info_display, math.floor(500))()
+    debounce(schedule_show_info_display, math.floor(vim.g.gitblame_delay))()
 end
 
 local function set_autocmds()
