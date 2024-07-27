@@ -133,7 +133,7 @@ end
 
 ---@param text string
 function M.copy_to_clipboard(text)
-    vim.fn.setreg("+", text)
+    vim.fn.setreg(vim.g.gitblame_clipboard_register, text)
 end
 
 ---@param command string

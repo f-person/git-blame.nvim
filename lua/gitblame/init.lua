@@ -789,6 +789,7 @@ end
 ---@field delay number? Visual delay for displaying virtual text
 ---@field use_blame_commit_file_urls boolean? Use the latest blame commit instead of the latest branch commit for file urls.
 ---@field virtual_text_column number? The column on which to start displaying virtual text
+---@field clipboard_register string? The clipboard register to use when copying commit SHAs or file URLs 
 
 ---@param opts SetupOptions?
 M.setup = function(opts)

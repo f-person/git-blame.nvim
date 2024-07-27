@@ -15,6 +15,7 @@ M.default_opts = {
     use_blame_commit_file_urls = false,
     schedule_event = "CursorMoved",
     clear_event = "CursorMovedI",
+    clipboard_register = "+",
 }
 
 ---@param opts SetupOptions?
