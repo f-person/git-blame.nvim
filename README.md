@@ -271,6 +271,16 @@ Default: `false`
 vim.g.gitblame_use_blame_commit_file_urls = true
 ```
 
+### Configuring the clipboard register
+
+By default the `:GitBlameCopySHA`, `:GitBlameCopyFileURL` and `:GitBlameCopyCommitURL` commands use the `+` register. Set this value if you would like to use a different register (such as `*`).
+
+Default: `+`
+
+```vim
+let g:gitblame_clipboard_register = "*"
+```
+
 ## Commands
 
 ### Open the commit URL in browser
