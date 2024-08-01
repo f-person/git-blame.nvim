@@ -15,13 +15,19 @@ function M.check_is_ignored(callback)
     })
 end
 
+---@param url string
+---@return string
+local function get_domain(url)
+    return string.match(remote_url, ".*git%@(.*)%:.*")
+        or string.match(remote_url, "https%:%/%/.*%@([^/]*)%/.*")
+        or string.match(remote_url, "https%:%/%/([^/]*)%/.*")
+end
+
 ---@param sha string
 ---@param remote_url string
 ---@return string
 local function get_commit_path(sha, remote_url)
-    local domain = string.match(remote_url, ".*git%@(.*)%:.*")
-        or string.match(remote_url, "https%:%/%/.*%@(.*)%/.*")
-        or string.match(remote_url, "https%:%/%/(.*)%/.*")
+    local domain = get_domain(remote_url)
 
     if domain and domain:lower() == "bitbucket.org" then
         return "/commits/" .. sha
@@ -103,8 +109,10 @@ end
 ---@return string
 local function get_file_url(remote_url, branch, filepath, line1, line2)
     local repo_url = get_repo_url(remote_url)
-    local isSrcHut = repo_url:find("git.sr.ht")
-    local isAzure = repo_url:find("dev.azure.com")
+    local domain = get_domain(repo_url)
+
+    local isSrcHut = domain == "git.sr.ht"
+    local isAzure = domain == "dev.azure.com"
 
     local file_path = "/blob/" .. branch .. "/" .. filepath
     if isSrcHut then
