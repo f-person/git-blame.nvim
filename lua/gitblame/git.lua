@@ -15,19 +15,19 @@ function M.check_is_ignored(callback)
     })
 end
 
-local function get_domain(url)
-    return string.match(remote_url, ".*git%@(.*)%:.*")
-        or string.match(remote_url, "https%:%/%/.*%@([^/]*)%/.*")
-        or string.match(remote_url, "https%:%/%/([^/]*)%/.*")
+local function get_http_domain(url)
+    local domain = string.match(url, "https%:%/%/.*%@([^/]*)%/.*")
+        or string.match(url, "https%:%/%/([^/]*)%/.*")
+    return domain and domain:lower()
 end
 
 ---@param sha string
 ---@param remote_url string
 ---@return string
-local function get_commit_path(sha, remote_url)
-    local domain = get_domain(remote_url)
+local function get_commit_path(sha, repo_url)
+    local domain = get_http_domain(repo_url)
 
-    if domain and domain:lower() == "bitbucket.org" then
+    if domain == "bitbucket.org" then
         return "/commits/" .. sha
     end
 
@@ -107,7 +107,7 @@ end
 ---@return string
 local function get_file_url(remote_url, branch, filepath, line1, line2)
     local repo_url = get_repo_url(remote_url)
-    local domain = get_domain(repo_url)
+    local domain = get_http_domain(repo_url)
 
     local isSrcHut = domain == "git.sr.ht"
     local isBitbucket = domain == "bitbucket.org"
@@ -208,9 +208,9 @@ end
 ---@param remote_url string
 ---@return string
 function M.get_commit_url(sha, remote_url)
-    local commit_path = get_commit_path(sha, remote_url)
-
     local repo_url = get_repo_url(remote_url)
+    local commit_path = get_commit_path(sha, repo_url)
+
     return repo_url .. commit_path
 end
 
