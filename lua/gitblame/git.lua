@@ -50,6 +50,8 @@ end
 ---@param remote_url string
 ---@return string
 local function get_repo_url(remote_url)
+    local remote_url = string.gsub(remote_url, "/$", "")
+
     local domain, path = string.match(remote_url, ".*git%@(.*)%:(.*)%.git")
     if domain and path then
         return "https://" .. domain .. "/" .. path
