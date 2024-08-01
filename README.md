@@ -23,6 +23,7 @@ A git blame plugin for Neovim written in Lua
   - [Better Performance](#better-performance)
   - [Use blame commit file URLs](#use-blame-commit-file-urls)
   - [Set displayed commit summary length](#set-displayed-commit-summary-length)
+  - [Remote forge domains](#remote-forge-domains)
 - [Commands](#commands)
   - [Open the commit URL in browser](#open-the-commit-url-in-browser)
   - [Enable/Disable git blame messages](#enabledisable-git-blame-messages)
@@ -291,6 +292,24 @@ Default: `0 (full length)`
 
 ```vim
 let g:gitblame_max_commit_summary_length = 50
+```
+
+### Remote forge domains
+
+A map of domain names to forge software. Set this so commit and file URLs are generated correctly for your self-hosted instances.
+
+Currently supported software:
+
+- `github`
+- `gitlab`
+- `sourcehut`
+- `azure`
+- `bitbucket`
+
+```lua
+vim.g.gitblame_remote_domains = {
+    "git.sr.ht" = "sourcehut"
+}
 ```
 
 ## Commands

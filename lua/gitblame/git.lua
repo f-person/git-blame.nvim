@@ -29,7 +29,8 @@ end
 local function get_commit_path(sha, repo_url)
     local domain = get_http_domain(repo_url)
 
-    if domain == "bitbucket.org" then
+    local forge = vim.g.gitblame_remote_domains[domain]
+    if forge == "bitbucket" then
         return "/commits/" .. sha
     end
 
@@ -111,18 +112,16 @@ local function get_file_url(remote_url, branch, filepath, line1, line2)
     local repo_url = get_repo_url(remote_url)
     local domain = get_http_domain(repo_url)
 
-    local isSrcHut = domain == "git.sr.ht"
-    local isBitbucket = domain == "bitbucket.org"
-    local isAzure = domain == "dev.azure.com"
+    local forge = vim.g.gitblame_remote_domains[domain]
 
     local file_path = "/blob/" .. branch .. "/" .. filepath
-    if isSrcHut then
+    if forge == "sourcehut" then
         file_path = "/tree/" .. branch .. "/" .. filepath
     end
-    if isBitbucket then
+    if forge == "bitbucket" then
         file_path = "/src/" .. ref .. "/" .. filepath
     end
-    if isAzure then
+    if forge == "azure" then
         -- Can't use branch here since the URL wouldn't work in cases it's a commit sha
         file_path = "?path=%2F" .. filepath
     end
@@ -130,25 +129,25 @@ local function get_file_url(remote_url, branch, filepath, line1, line2)
     if line1 == nil then
         return repo_url .. file_path
     elseif line2 == nil or line1 == line2 then
-        if isAzure then
+        if forge == "azure" then
             return repo_url .. file_path .. "&line=" .. line1 .. "&lineEnd=" .. line1 + 1 .. "&lineStartColumn=1&lineEndColumn=1"
         end
 
-        if isBitbucket then
+        if forge == "bitbucket" then
             return repo_url .. file_path .. "#lines-" .. line1
         end
 
         return repo_url .. file_path .. "#L" .. line1
     else
-        if isSrcHut then
+        if forge == "sourcehut" then
             return repo_url .. file_path .. "#L" .. line1 .. "-" .. line2
         end
 
-        if isAzure then
+        if forge == "azure" then
             return repo_url .. file_path .. "&line=" .. line1 .. "&lineEnd=" .. line2 + 1 .. "&lineStartColumn=1&lineEndColumn=1"
         end
 
-        if isBitbucket then
+        if forge == "bitbucket" then
             return repo_url .. file_path .. "#lines-" .. line1 .. ":" .. line2
         end
 
