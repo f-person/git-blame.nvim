@@ -103,26 +103,31 @@ local function get_repo_url(remote_url)
 end
 
 ---@param remote_url string
----@param branch string
+---@param ref_type "commit"|"branch"
+---@param ref string
 ---@param filepath string
 ---@param line1 number?
 ---@param line2 number?
 ---@return string
-local function get_file_url(remote_url, branch, filepath, line1, line2)
+local function get_file_url(remote_url, ref_type, ref, filepath, line1, line2)
     local repo_url = get_repo_url(remote_url)
     local domain = get_http_domain(repo_url)
 
     local forge = vim.g.gitblame_remote_domains[domain]
 
-    local file_path = "/blob/" .. branch .. "/" .. filepath
+    local file_path = "/blob/" .. ref .. "/" .. filepath
     if forge == "sourcehut" then
-        file_path = "/tree/" .. branch .. "/" .. filepath
+        file_path = "/tree/" .. ref .. "/" .. filepath
+    end
+    if forge == "forgejo" then
+        file_path = "/src/" .. ref_type .. "/" .. ref .. "/" .. filepath
     end
     if forge == "bitbucket" then
         file_path = "/src/" .. ref .. "/" .. filepath
     end
     if forge == "azure" then
-        -- Can't use branch here since the URL wouldn't work in cases it's a commit sha
+        -- Can't use ref here if it's a commit sha
+        -- FIXME: add branch names to the URL
         file_path = "?path=%2F" .. filepath
     end
 
@@ -192,13 +197,13 @@ function M.get_file_url(filepath, sha, line1, line2, callback)
         if sha == nil then
             get_current_branch(function(branch)
                 M.get_remote_url(function(remote_url)
-                    local url = get_file_url(remote_url, branch, relative_filepath, line1, line2)
+                    local url = get_file_url(remote_url, "branch", branch, relative_filepath, line1, line2)
                     callback(url)
                 end)
             end)
         else
             M.get_remote_url(function(remote_url)
-                local url = get_file_url(remote_url, sha, relative_filepath, line1, line2)
+                local url = get_file_url(remote_url, "commit", sha, relative_filepath, line1, line2)
                 callback(url)
             end)
         end

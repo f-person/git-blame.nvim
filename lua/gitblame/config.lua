@@ -20,7 +20,8 @@ M.default_opts = {
     remote_domains = {
         ["git.sr.ht"] = "sourcehut",
         ["dev.azure.com"] = "azure",
-        ["bitbucket.org"] = "bitbucket"
+        ["bitbucket.org"] = "bitbucket",
+        ["codeberg.org"] = "forgejo"
     }
 }
 
