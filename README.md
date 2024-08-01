@@ -289,6 +289,7 @@ A map of domain names to forge software, used to generate commit and file URLs. 
 - `github`
 - `gitlab`
 - `sourcehut`
+- `forgejo`
 - `azure`
 - `bitbucket`
 
