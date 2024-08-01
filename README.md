@@ -303,6 +303,7 @@ Currently supported software:
 - `github`
 - `gitlab`
 - `sourcehut`
+- `forgejo`
 - `azure`
 - `bitbucket`
 
