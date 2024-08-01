@@ -112,11 +112,15 @@ local function get_file_url(remote_url, branch, filepath, line1, line2)
     local domain = get_domain(repo_url)
 
     local isSrcHut = domain == "git.sr.ht"
+    local isBitbucket = domain == "bitbucket.org"
     local isAzure = domain == "dev.azure.com"
 
     local file_path = "/blob/" .. branch .. "/" .. filepath
     if isSrcHut then
         file_path = "/tree/" .. branch .. "/" .. filepath
+    end
+    if isBitbucket then
+        file_path = "/src/" .. ref .. "/" .. filepath
     end
     if isAzure then
         -- Can't use branch here since the URL wouldn't work in cases it's a commit sha
@@ -130,6 +134,10 @@ local function get_file_url(remote_url, branch, filepath, line1, line2)
             return repo_url .. file_path .. "&line=" .. line1 .. "&lineEnd=" .. line1 + 1 .. "&lineStartColumn=1&lineEndColumn=1"
         end
 
+        if isBitbucket then
+            return repo_url .. file_path .. "#lines-" .. line1
+        end
+
         return repo_url .. file_path .. "#L" .. line1
     else
         if isSrcHut then
@@ -138,6 +146,10 @@ local function get_file_url(remote_url, branch, filepath, line1, line2)
 
         if isAzure then
             return repo_url .. file_path .. "&line=" .. line1 .. "&lineEnd=" .. line2 + 1 .. "&lineStartColumn=1&lineEndColumn=1"
+        end
+
+        if isBitbucket then
+            return repo_url .. file_path .. "#lines-" .. line1 .. ":" .. line2
         end
 
         return repo_url .. file_path .. "#L" .. line1 .. "-L" .. line2
