@@ -17,6 +17,11 @@ M.default_opts = {
     clear_event = "CursorMovedI",
     clipboard_register = "+",
     max_commit_summary_length = 0,
+    remote_domains = {
+        ["git.sr.ht"] = "sourcehut",
+        ["dev.azure.com"] = "azure",
+        ["bitbucket.org"] = "bitbucket"
+    }
 }
 
 ---@param opts SetupOptions?
