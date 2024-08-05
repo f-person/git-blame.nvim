@@ -15,15 +15,20 @@ function M.check_is_ignored(callback)
     })
 end
 
+local function get_http_domain(url)
+    local domain = string.match(url, "https%:%/%/.*%@([^/]*)%/.*")
+        or string.match(url, "https%:%/%/([^/]*)%/.*")
+    return domain and domain:lower()
+end
+
 ---@param sha string
 ---@param remote_url string
 ---@return string
-local function get_commit_path(sha, remote_url)
-    local domain = string.match(remote_url, ".*git%@(.*)%:.*")
-        or string.match(remote_url, "https%:%/%/.*%@(.*)%/.*")
-        or string.match(remote_url, "https%:%/%/(.*)%/.*")
+local function get_commit_path(sha, repo_url)
+    local domain = get_http_domain(repo_url)
 
-    if domain and domain:lower() == "bitbucket.org" then
+    local forge = vim.g.gitblame_remote_domains[domain]
+    if forge == "bitbucket" then
         return "/commits/" .. sha
     end
 
@@ -50,6 +55,8 @@ end
 ---@param remote_url string
 ---@return string
 local function get_repo_url(remote_url)
+    remote_url = string.gsub(remote_url, "/$", "")
+
     local domain, path = string.match(remote_url, ".*git%@(.*)%:(.*)%.git")
     if domain and path then
         return "https://" .. domain .. "/" .. path
@@ -94,40 +101,57 @@ local function get_repo_url(remote_url)
 end
 
 ---@param remote_url string
----@param branch string
+---@param ref_type "commit"|"branch"
+---@param ref string
 ---@param filepath string
 ---@param line1 number?
 ---@param line2 number?
 ---@return string
-local function get_file_url(remote_url, branch, filepath, line1, line2)
+local function get_file_url(remote_url, ref_type, ref, filepath, line1, line2)
     local repo_url = get_repo_url(remote_url)
-    local isSrcHut = repo_url:find("git.sr.ht")
-    local isAzure = repo_url:find("dev.azure.com")
+    local domain = get_http_domain(repo_url)
 
-    local file_path = "/blob/" .. branch .. "/" .. filepath
-    if isSrcHut then
-        file_path = "/tree/" .. branch .. "/" .. filepath
+    local forge = vim.g.gitblame_remote_domains[domain]
+
+    local file_path = "/blob/" .. ref .. "/" .. filepath
+    if forge == "sourcehut" then
+        file_path = "/tree/" .. ref .. "/" .. filepath
     end
-    if isAzure then
-        -- Can't use branch here since the URL wouldn't work in cases it's a commit sha
+    if forge == "forgejo" then
+        file_path = "/src/" .. ref_type .. "/" .. ref .. "/" .. filepath
+    end
+    if forge == "bitbucket" then
+        file_path = "/src/" .. ref .. "/" .. filepath
+    end
+    if forge == "azure" then
+        -- Can't use ref here if it's a commit sha
+        -- FIXME: add branch names to the URL
         file_path = "?path=%2F" .. filepath
     end
 
     if line1 == nil then
         return repo_url .. file_path
     elseif line2 == nil or line1 == line2 then
-        if isAzure then
+        if forge == "azure" then
             return repo_url .. file_path .. "&line=" .. line1 .. "&lineEnd=" .. line1 + 1 .. "&lineStartColumn=1&lineEndColumn=1"
+        end
+
+        if forge == "bitbucket" then
+            return repo_url .. file_path .. "#lines-" .. line1
         end
 
         return repo_url .. file_path .. "#L" .. line1
     else
-        if isSrcHut then
+        if forge == "sourcehut" then
             return repo_url .. file_path .. "#L" .. line1 .. "-" .. line2
         end
 
-        if isAzure then
+        if forge == "azure" then
             return repo_url .. file_path .. "&line=" .. line1 .. "&lineEnd=" .. line2 + 1 .. "&lineStartColumn=1&lineEndColumn=1"
+        end
+
+        if forge == "bitbucket" then
+            return repo_url .. file_path .. "#lines-" .. line1 .. ":" .. line2
         end
 
         return repo_url .. file_path .. "#L" .. line1 .. "-L" .. line2
@@ -171,13 +195,13 @@ function M.get_file_url(filepath, sha, line1, line2, callback)
         if sha == nil then
             get_current_branch(function(branch)
                 M.get_remote_url(function(remote_url)
-                    local url = get_file_url(remote_url, branch, relative_filepath, line1, line2)
+                    local url = get_file_url(remote_url, "branch", branch, relative_filepath, line1, line2)
                     callback(url)
                 end)
             end)
         else
             M.get_remote_url(function(remote_url)
-                local url = get_file_url(remote_url, sha, relative_filepath, line1, line2)
+                local url = get_file_url(remote_url, "commit", sha, relative_filepath, line1, line2)
                 callback(url)
             end)
         end
@@ -188,9 +212,9 @@ end
 ---@param remote_url string
 ---@return string
 function M.get_commit_url(sha, remote_url)
-    local commit_path = get_commit_path(sha, remote_url)
-
     local repo_url = get_repo_url(remote_url)
+    local commit_path = get_commit_path(sha, repo_url)
+
     return repo_url .. commit_path
 end
 

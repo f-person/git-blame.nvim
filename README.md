@@ -22,6 +22,7 @@ A git blame plugin for Neovim written in Lua
   - [Start virtual text at column](#start-virtual-text-at-column)
   - [Better Performance](#better-performance)
   - [Use blame commit file URLs](#use-blame-commit-file-urls)
+  - [Remote forge domains](#remote-forge-domains)
 - [Commands](#commands)
   - [Open the commit URL in browser](#open-the-commit-url-in-browser)
   - [Enable/Disable git blame messages](#enabledisable-git-blame-messages)
@@ -279,6 +280,23 @@ Default: `+`
 
 ```vim
 let g:gitblame_clipboard_register = "*"
+```
+
+### Remote forge domains
+
+A map of domain names to forge software, used to generate commit and file URLs. Currently supported software:
+
+- `github`
+- `gitlab`
+- `sourcehut`
+- `forgejo`
+- `azure`
+- `bitbucket`
+
+```lua
+vim.g.gitblame_remote_domains = {
+    "git.sr.ht" = "sourcehut"
+}
 ```
 
 ## Commands
