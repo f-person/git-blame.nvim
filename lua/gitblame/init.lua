@@ -288,7 +288,7 @@ local function format_blame_text(info, template)
     text = text:gsub("<committer%-date>", format_date(info.committer_date))
     text = text:gsub("<date>", format_date(info.date))
 
-    local summary_escaped = info.summary:gsub("%%", "%%%%")
+    local summary_escaped = info.summary and info.summary:gsub("%%", "%%%%") or ""
     text = text:gsub("<summary>", summary_escaped)
 
     text = text:gsub("<sha>", info.sha and string.sub(info.sha, 1, 7) or "")
