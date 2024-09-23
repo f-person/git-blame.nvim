@@ -16,6 +16,7 @@ M.default_opts = {
     schedule_event = "CursorMoved",
     clear_event = "CursorMovedI",
     clipboard_register = "+",
+    max_commit_summary_length = 0,
 }
 
 ---@param opts SetupOptions?

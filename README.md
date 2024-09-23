@@ -22,6 +22,7 @@ A git blame plugin for Neovim written in Lua
   - [Start virtual text at column](#start-virtual-text-at-column)
   - [Better Performance](#better-performance)
   - [Use blame commit file URLs](#use-blame-commit-file-urls)
+  - [Set displayed commit summary length](#set-displayed-commit-summary-length)
 - [Commands](#commands)
   - [Open the commit URL in browser](#open-the-commit-url-in-browser)
   - [Enable/Disable git blame messages](#enabledisable-git-blame-messages)
@@ -279,6 +280,17 @@ Default: `+`
 
 ```vim
 let g:gitblame_clipboard_register = "*"
+```
+
+### Set displayed commit summary length
+
+The maximum length of the commit summary shown in the blame message.
+If the commit summary is longer than this value, it will be truncated.
+
+Default: `0 (full length)`
+
+```vim
+let g:gitblame_max_commit_summary_length = 50
 ```
 
 ## Commands

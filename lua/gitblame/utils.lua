@@ -159,4 +159,14 @@ function M.shallowcopy(orig)
     return copy
 end
 
+---@param description string
+---@param max_length number
+---@return string
+function M.truncate_description(description, max_length)
+    if max_length ~= 0 and string.len(description) > max_length then
+        return string.sub(description, 1, max_length) .. "..."
+    end
+    return description
+end
+
 return M

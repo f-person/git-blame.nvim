@@ -289,7 +289,7 @@ local function format_blame_text(info, template)
     text = text:gsub("<date>", format_date(info.date))
 
     local summary_escaped = info.summary and info.summary:gsub("%%", "%%%%") or ""
-    text = text:gsub("<summary>", summary_escaped)
+    text = text:gsub("<summary>", utils.truncate_description(summary_escaped, vim.g.gitblame_max_commit_summary_length))
 
     text = text:gsub("<sha>", info.sha and string.sub(info.sha, 1, 7) or "")
 
@@ -789,7 +789,8 @@ end
 ---@field delay number? Visual delay for displaying virtual text
 ---@field use_blame_commit_file_urls boolean? Use the latest blame commit instead of the latest branch commit for file urls.
 ---@field virtual_text_column number? The column on which to start displaying virtual text
----@field clipboard_register string? The clipboard register to use when copying commit SHAs or file URLs 
+---@field clipboard_register string? The clipboard register to use when copying commit SHAs or file URLs
+---@field max_commit_summary_length number? The maximum allowable length for the displayed commit summary. Defaults to 0 (no limit)
 
 ---@param opts SetupOptions?
 M.setup = function(opts)
