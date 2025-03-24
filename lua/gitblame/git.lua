@@ -8,11 +8,13 @@ function M.check_is_ignored(callback)
         return true
     end
 
-    utils.start_job("git check-ignore " .. vim.fn.shellescape(filepath), {
-        on_exit = function(code)
-            callback(code ~= 1)
-        end,
-    })
+    return true
+
+    -- utils.start_job("git check-ignore " .. vim.fn.shellescape(filepath), {
+    --     on_exit = function(code)
+    --         callback(code ~= 1)
+    --     end,
+    -- })
 end
 
 ---@param url string
@@ -165,7 +167,7 @@ local function get_current_branch(callback)
     if not utils.get_filepath() then
         return
     end
-    local command = utils.make_local_command("git branch --show-current")
+    local command = utils.make_local_command([[jj --config ui.color=never log -r 'latest(ancestors(@) & bookmarks())' --no-graph -T 'self.local_bookmarks().join("\n")']])
 
     utils.start_job(command, {
         on_stdout = function(url)
@@ -243,15 +245,18 @@ function M.get_remote_url(callback)
     if not utils.get_filepath() then
         return
     end
-    local remote_url_command = utils.make_local_command("git config --get remote.origin.url")
+    local remote_url_command = utils.make_local_command("jj git remote list")
 
     utils.start_job(remote_url_command, {
-        on_stdout = function(url)
-            if url and url[1] then
-                callback(url[1])
-            else
-                callback("")
+        on_stdout = function(lines)
+            for _, line in ipairs(lines) do
+                if line:match("^origin ") then
+                    local url = line:gsub("^origin ", "")
+                    callback(url)
+                    return
+                end
             end
+            callback("")
         end,
     })
 end
@@ -261,7 +266,7 @@ function M.get_repo_root(callback)
     if not utils.get_filepath() then
         return
     end
-    local command = utils.make_local_command("git rev-parse --show-toplevel")
+    local command = utils.make_local_command("jj root")
 
     utils.start_job(command, {
         on_stdout = function(data)

@@ -172,25 +172,19 @@ local function load_blames(callback)
 
     files_data_loading[filepath] = true
 
-    git.get_repo_root(function(git_root)
-        local command = "git --no-pager -C "
-            .. vim.fn.shellescape(git_root)
-            .. " blame -b -p -w --date relative --contents - "
-            .. vim.fn.shellescape(filepath)
+    local command = [[jj --config ui.color=never file annotate --config templates.file_annotate='"separate(\"\n\", separate(\" \", commit.commit_id(), 99999, line_number, 1), \"author \" ++ commit.author().name(), \"author-time \" ++ commit.author().timestamp().format(\"%s\"), \"committer \" ++ commit.committer().name(), \"committer-time \" ++ commit.committer().timestamp().format(\"%s\"), \"summary \" ++ commit.description().first_line(), \"\t\" ++ content)++ \"\n\""' ]] .. vim.fn.shellescape(filepath)
 
-        start_job(command, {
-            input = table.concat(lines, "\n") .. "\n",
-            on_stdout = function(data)
-                process_blame_output(blames, filepath, data)
-                if callback then
-                    callback()
-                end
-            end,
-            on_exit = function()
-                files_data_loading[filepath] = nil
-            end,
-        })
-    end)
+    start_job(command, {
+        on_stdout = function(data)
+            process_blame_output(blames, filepath, data)
+            if callback then
+                callback()
+            end
+        end,
+        on_exit = function()
+            files_data_loading[filepath] = nil
+        end,
+    })
 end
 
 ---Checks if the date format contains a relative time placeholder.
@@ -289,6 +283,9 @@ local function format_blame_text(info, template)
     text = text:gsub("<date>", format_date(info.date))
 
     local summary_escaped = info.summary and info.summary:gsub("%%", "%%%%") or ""
+    if info.summary == "" then
+        summary_escaped = "(empty)"
+    end
     text = text:gsub("<summary>", utils.truncate_description(summary_escaped, vim.g.gitblame_max_commit_summary_length))
 
     text = text:gsub("<sha>", info.sha and string.sub(info.sha, 1, 7) or "")
@@ -462,7 +459,7 @@ end
 
 ---@param callback fun(current_author: string)
 local function find_current_author(callback)
-    start_job("git config --get user.name", {
+    start_job("jj config get user.name", {
         ---@param data string[]
         on_stdout = function(data)
             current_author = data[1]
@@ -517,7 +514,7 @@ end
 ---Returns SHA for the latest commit to the current branch.
 ---@param callback fun(sha: string)
 local function get_latest_sha(callback)
-    start_job("git rev-parse HEAD", {
+    start_job("jj log -T 'commit_id' --no-graph -r @-", {
         on_stdout = function(data)
             callback(data[1])
         end,
