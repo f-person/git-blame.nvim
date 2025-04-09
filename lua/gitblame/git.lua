@@ -243,7 +243,7 @@ function M.get_remote_url(callback)
     if not utils.get_filepath() then
         return
     end
-    local remote_url_command = utils.make_local_command("git config --get remote.origin.url")
+    local remote_url_command = utils.make_local_command("git remote get-url origin")
 
     utils.start_job(remote_url_command, {
         on_stdout = function(url)
