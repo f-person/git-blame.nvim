@@ -764,6 +764,104 @@ M.toggle = function()
     end
 end
 
+---Display a commit message floating window.
+---@param lines table The message you want to display.
+---@return integer win The floating window id.
+local function show_floating(lines)
+    -- scratch buffer
+    local buf = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+
+    -- buffer options
+    vim.api.nvim_set_option_value("buftype", "nofile", { buf = buf })
+    vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = buf })
+    vim.api.nvim_set_option_value("modifiable", false, { buf = buf })
+    vim.api.nvim_set_option_value("swapfile", false, { buf = buf })
+    vim.api.nvim_set_option_value("filetype", "markdown", { buf = buf })
+    vim.api.nvim_set_option_value("syntax", "on", { buf = buf })
+
+    -- 2) size
+    local width = 0
+    for _, l in ipairs(lines) do
+        width = math.max(width, #l)
+    end
+    width = math.min(width, vim.api.nvim_win_get_width(0) - 4)
+    local height = #lines
+
+    -- 3) open and enter float
+    local win = vim.api.nvim_open_win(buf, true, {
+        relative = "cursor",
+        row = -1,
+        col = 0,
+        width = width,
+        height = height,
+        style = "minimal",
+        border = "rounded",
+        focusable = true,
+        noautocmd = true,
+    })
+
+    -- window opts via nvim_set_option_value
+    vim.api.nvim_set_option_value("wrap", true, { win = win })
+    vim.api.nvim_set_option_value("conceallevel", 2, { win = win })
+    vim.api.nvim_set_option_value("concealcursor", "niv", { win = win })
+
+    -- 4) buffer-local `q` mapping only for this buffer
+    vim.keymap.set("n", "q", function()
+        if vim.api.nvim_win_is_valid(win) then
+            vim.api.nvim_win_close(win, true)
+        end
+    end, { buffer = buf, silent = true, nowait = true })
+
+    return win
+end
+
+-- Open a floating window to show the blame message
+-- create a scratch buffer
+M.toggle_line_commit_message = function()
+    if not vim.g.gitblame_enabled then
+        return
+    end
+
+    local position_info = get_position_info()
+
+    local filepath = position_info.filepath
+    local line = position_info.line
+
+    if not files_data[filepath] then
+        load_blames(show_blame_info)
+        return
+    end
+    if files_data[filepath].git_repo_path == "" then
+        return
+    end
+    if not files_data[filepath].blames then
+        load_blames(show_blame_info)
+        return
+    end
+
+    local info = get_blame_info(filepath, line)
+    if info ~= nil then
+        local author = info.author
+        local date = format_date(info.date)
+        local commit_message = info.summary
+        local commit_sha = info.sha
+
+        if not is_valid_sha(commit_sha) then
+            commit_sha = "N/A"
+            -- trim the front spaces
+            commit_message = get_uncommitted_message_template():gsub("^%s+", "")
+        end
+
+        show_floating({
+            "**Author**: " .. author,
+            "**Date**: " .. date,
+            "**Commit**: " .. commit_message,
+            "**Sha**: " .. commit_sha,
+        })
+    end
+end
+
 local create_cmds = function()
     local command = vim.api.nvim_create_user_command
 
@@ -775,6 +873,7 @@ local create_cmds = function()
     command("GitBlameCopySHA", M.copy_sha_to_clipboard, {})
     command("GitBlameCopyCommitURL", M.copy_commit_url_to_clipboard, {})
     command("GitBlameCopyFileURL", M.copy_file_url_to_clipboard, { range = true })
+    command("GitBlameToggleCommitMesgWindow", M.toggle_line_commit_message, {})
 end
 
 ---@class SetupOptions

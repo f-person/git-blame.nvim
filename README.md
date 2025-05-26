@@ -343,6 +343,8 @@ the system clipboard.
 The URL is scoped to the latest commit on the current branch and
 has a mark of the current line. (same is true for `GitBlameCopyFileURL`)
 
+`:GitBlameToggleCommitMesgWindow` open a floating window to display the commit message of the current line.
+
 ### Copy file URL
 
 `:GitBlameCopyFileURL` copies the file URL into the system clipboard.
