@@ -103,6 +103,12 @@ function M.merge_map(source, target)
     end
 end
 
+
+---@return boolean
+function M.in_nushell()
+    return vim.endswith(vim.o.shell, "/nu")
+end
+
 ---Keeping it outside the function improves performance by not
 ---finding the OS every time.
 ---@type fun(url: string)
@@ -113,18 +119,21 @@ local open_cmd
 ---@param url string
 function M.launch_url(url)
     if not open_cmd then
+        local open_utility
         if package.config:sub(1, 1) == "\\" then
-            open_cmd = function(_url)
-                M.start_job(string.format('rundll32 url.dll,FileProtocolHandler "%s"', _url))
-            end
+            open_utility = 'rundll32 url.dll,FileProtocolHandler'
         elseif (io.popen("uname -s"):read("*a")):match("Darwin") then
-            open_cmd = function(_url)
-                M.start_job(string.format('open "%s"', _url))
+            if M.in_nushell() then
+                open_utility = '^open'
+            else
+                open_utility = 'open'
             end
         else
-            open_cmd = function(_url)
-                M.start_job(string.format('xdg-open "%s"', _url))
-            end
+            open_utility = 'xdg-open'
+        end
+
+        open_cmd = function(_url)
+            M.start_job(string.format('%s "%s"', open_utility, _url))
         end
     end
 
@@ -139,7 +148,13 @@ end
 ---@param command string
 ---@return string
 function M.make_local_command(command)
-    return "cd " .. vim.fn.shellescape(vim.fn.expand("%:p:h")) .. " && " .. command
+    local sep
+    if M.in_nushell() then
+        sep = " ; "
+    else
+        sep = " && "
+    end
+    return "cd " .. vim.fn.shellescape(vim.fn.expand("%:p:h")) .. sep .. command
 end
 
 ---@generic T
