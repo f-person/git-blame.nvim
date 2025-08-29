@@ -112,6 +112,11 @@ local open_cmd
 ---Source: https://stackoverflow.com/a/18864453/9714875
 ---@param url string
 function M.launch_url(url)
+    if vim.fn.has("nvim-0.10") then
+        vim.ui.open(url)
+        return
+    end
+
     if not open_cmd then
         if package.config:sub(1, 1) == "\\" then
             open_cmd = function(_url)
