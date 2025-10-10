@@ -637,6 +637,31 @@ M.copy_commit_url_to_clipboard = function()
     end)
 end
 
+M.copy_pr_url_to_clipboard = function()
+    M.get_sha(function(sha)
+        if is_valid_sha(sha) then
+            local cmd = string.format('gh pr list --search "%s" --state merged --limit 1 --json url -q ".[0].url"', sha)
+            utils.start_job(cmd, {
+                on_stdout = function(data)
+                    if data and data[1] and data[1] ~= "" then
+                        utils.copy_to_clipboard(data[1])
+                        utils.log("PR URL copied to clipboard")
+                    else
+                        utils.log("No PR found for commit " .. sha)
+                    end
+                end,
+                on_exit = function(code)
+                    if code ~= 0 then
+                        utils.log("Failed to find PR (is gh CLI installed?)")
+                    end
+                end
+            })
+        else
+            utils.log("Unable to get commit SHA")
+        end
+    end)
+end
+
 local function clear_all_extmarks()
     local buffers = vim.api.nvim_list_bufs()
 
@@ -775,6 +800,7 @@ local create_cmds = function()
     command("GitBlameCopySHA", M.copy_sha_to_clipboard, {})
     command("GitBlameCopyCommitURL", M.copy_commit_url_to_clipboard, {})
     command("GitBlameCopyFileURL", M.copy_file_url_to_clipboard, { range = true })
+    command("GitBlameCopyPRURL", M.copy_pr_url_to_clipboard, {})
 end
 
 ---@class SetupOptions
