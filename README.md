@@ -336,6 +336,10 @@ the system's clipboard.
 `:GitBlameCopyCommitURL` copies the commit URL of current line's commit into
 the system clipboard.
 
+### Copy PR URL
+
+`:GitBlameCopyPRURL` copies the pull request URL associated with the commit on the current line into the system clipboard. This command requires the GitHub CLI (`gh`) to be installed and authenticated.
+
 ### Open file URL in browser
 
 `:GitBlameOpenFileURL` opens the file in the default browser.
