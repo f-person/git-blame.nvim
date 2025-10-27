@@ -18,8 +18,7 @@ end
 ---@param url string
 ---@return string
 local function get_http_domain(url)
-    local domain = string.match(url, "https%:%/%/.*%@([^/]*)%/.*")
-        or string.match(url, "https%:%/%/([^/]*)%/.*")
+    local domain = string.match(url, "https%:%/%/.*%@([^/]*)%/.*") or string.match(url, "https%:%/%/([^/]*)%/.*")
     return domain and domain:lower()
 end
 
@@ -43,12 +42,12 @@ local function get_azure_url(url)
     -- HTTPS has a different URL format
     local org, project, repo = string.match(url, "(.*)/(.*)/_git/(.*)")
     if org and project and repo then
-        return 'https://dev.azure.com/' .. org .. "/" .. project .. "/_git/" .. repo
+        return "https://dev.azure.com/" .. org .. "/" .. project .. "/_git/" .. repo
     end
 
     org, project, repo = string.match(url, "(.*)/(.*)/(.*)")
     if org and project and repo then
-        return 'https://dev.azure.com/' .. org .. "/" .. project .. "/_git/" .. repo
+        return "https://dev.azure.com/" .. org .. "/" .. project .. "/_git/" .. repo
     end
 
     return url
@@ -102,6 +101,18 @@ local function get_repo_url(remote_url)
     return remote_url
 end
 
+---URL-encode a given string URI.
+---@param url string
+---@return string
+local function url_encode(url)
+    -- only includes opening/closing square bracket for now,
+    -- more can be added as needed later
+    local pattern = "[][]"
+    return string.gsub(url, pattern, function(c)
+        return string.format("%%%02X", string.byte(c))
+    end)
+end
+
 ---@param remote_url string
 ---@param ref_type "commit"|"branch"
 ---@param ref string
@@ -115,9 +126,9 @@ local function get_file_url(remote_url, ref_type, ref, filepath, line1, line2)
 
     local forge = vim.g.gitblame_remote_domains[domain]
 
-    local file_path = "/blob/" .. ref .. "/" .. filepath
+    local file_path = url_encode("/blob/" .. ref .. "/" .. filepath)
     if forge == "sourcehut" then
-        file_path = "/tree/" .. ref .. "/" .. filepath
+        file_path = url_encode("/tree/" .. ref .. "/" .. filepath)
     end
     if forge == "forgejo" then
         file_path = "/src/" .. ref_type .. "/" .. ref .. "/" .. filepath
@@ -135,7 +146,13 @@ local function get_file_url(remote_url, ref_type, ref, filepath, line1, line2)
         return repo_url .. file_path
     elseif line2 == nil or line1 == line2 then
         if forge == "azure" then
-            return repo_url .. file_path .. "&line=" .. line1 .. "&lineEnd=" .. line1 + 1 .. "&lineStartColumn=1&lineEndColumn=1"
+            return repo_url
+                .. file_path
+                .. "&line="
+                .. line1
+                .. "&lineEnd="
+                .. line1 + 1
+                .. "&lineStartColumn=1&lineEndColumn=1"
         end
 
         if forge == "bitbucket" then
@@ -149,7 +166,13 @@ local function get_file_url(remote_url, ref_type, ref, filepath, line1, line2)
         end
 
         if forge == "azure" then
-            return repo_url .. file_path .. "&line=" .. line1 .. "&lineEnd=" .. line2 + 1 .. "&lineStartColumn=1&lineEndColumn=1"
+            return repo_url
+                .. file_path
+                .. "&line="
+                .. line1
+                .. "&lineEnd="
+                .. line2 + 1
+                .. "&lineStartColumn=1&lineEndColumn=1"
         end
 
         if forge == "bitbucket" then
