@@ -266,7 +266,11 @@ function M.get_remote_url(callback)
     if not utils.get_filepath() then
         return
     end
-    local remote_url_command = utils.make_local_command("git remote get-url origin")
+    local remote_name = vim.g.gitblame_remote_name
+    if remote_name == nil then
+        remote_name = "origin"
+    end
+    local remote_url_command = utils.make_local_command("git remote get-url " .. remote_name)
 
     utils.start_job(remote_url_command, {
         on_stdout = function(url)
