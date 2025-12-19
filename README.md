@@ -24,6 +24,7 @@ A git blame plugin for Neovim written in Lua
   - [Use blame commit file URLs](#use-blame-commit-file-urls)
   - [Set displayed commit summary length](#set-displayed-commit-summary-length)
   - [Remote forge domains](#remote-forge-domains)
+  - [Working with multiple remote names and forks](#multiple-remote-names)
 - [Commands](#commands)
   - [Open the commit URL in browser](#open-the-commit-url-in-browser)
   - [Enable/Disable git blame messages](#enabledisable-git-blame-messages)
@@ -313,6 +314,18 @@ vim.g.gitblame_remote_domains = {
 }
 ```
 
+### Multiple remote names
+
+If your project tracks multiple remote repositories you can change remote name to one you want to track.
+
+Default: `origin`
+
+```vim
+let g:gitblame_remote_name = "upstream"
+```
+
+Tip: You can enable `.exrc` in your nvim config and set remote name per project.
+
 ## Commands
 
 ### Open the commit URL in browser
@@ -335,6 +348,10 @@ the system's clipboard.
 
 `:GitBlameCopyCommitURL` copies the commit URL of current line's commit into
 the system clipboard.
+
+### Copy PR URL
+
+`:GitBlameCopyPRURL` copies the pull request URL associated with the commit on the current line into the system clipboard. This command requires the GitHub CLI (`gh`) to be installed and authenticated.
 
 ### Open file URL in browser
 
